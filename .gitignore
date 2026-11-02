@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Android Build Outputs
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+*.iml
+
+# Binaries & APKs
+*.apk
+*.exe
+
+# Logs & Temp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+.DS_Store
+Thumbs.db
+
+# Environment
+.env

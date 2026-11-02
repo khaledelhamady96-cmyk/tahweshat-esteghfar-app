@@ -1,0 +1,136 @@
+/* Tahweshat Esteghfar Custom Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
+
+:root {
+  --brand-green: #047857;
+  --brand-gold: #d97706;
+}
+
+body {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  overflow-x: hidden;
+}
+
+.font-quran {
+  font-family: 'Amiri', serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(4, 120, 87, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.8);
+}
+
+/* Nav Tabs Active Styling */
+.nav-tab {
+  color: #94a3b8;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+.nav-tab:hover {
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.nav-tab.active {
+  background: linear-gradient(135deg, rgba(4, 120, 87, 0.8) 0%, rgba(6, 78, 59, 0.9) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* Tab View Switch Transitions */
+.tab-view {
+  animation: fadeIn 0.25s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bounceIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-bounceIn {
+  animation: bounceIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease-out;
+}
+
+/* Islamic Subtle Card Background */
+.islamic-card {
+  background-image: radial-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Pulse Glow */
+.gold-glow {
+  box-shadow: 0 0 25px rgba(217, 119, 6, 0.2);
+}
+.emerald-glow {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+}
+
+/* ================= MOBILE SAFE AREA INSETS (STATUS BAR & NAV BAR) ================= */
+/* حماية منطقة شريط الإشعارات العلوي وأزرار التحكم السفلية بنظام أندرويد */
+:root {
+  --safe-top: env(safe-area-inset-top, 28px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+.mobile-safe-header {
+  padding-top: max(16px, env(safe-area-inset-top, 28px)) !important;
+}
+
+#authGateView {
+  padding-top: max(32px, env(safe-area-inset-top, 36px)) !important;
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 28px)) !important;
+}
+
+#mobileBottomNav {
+  padding-top: 10px !important;
+  padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 20px) + 16px)) !important;
+  min-height: 74px !important;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6) !important;
+  touch-action: manipulation !important;
+}
+
+.mob-nav-btn {
+  min-width: 58px !important;
+  min-height: 48px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  padding: 4px !important;
+}
+
+.mob-nav-btn i {
+  font-size: 1.15rem !important;
+}
+
+.mob-nav-btn span {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+}

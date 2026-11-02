@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>تحويشة استغفار | بركة الرزق ونور الاستغفار</title>
+  <!-- Google Fonts: Cairo, Amiri, Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22'
+            },
+            gold: {
+              100: '#fef9c3',
+              200: '#fef08a',
+              300: '#fde047',
+              400: '#facc15',
+              500: '#eab308',
+              600: '#ca8a04',
+              700: '#a16207',
+              800: '#854d0e',
+              900: '#713f12'
+            }
+          },
+          fontFamily: {
+            sans: ['Cairo', 'Tajawal', 'sans-serif'],
+            quran: ['Amiri', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white select-none">
+
+  <!-- ================= 1. STRICT AUTH GATE SCREEN (FULLSCREEN AUTH WALL) ================= -->
+  <!-- لا يمكن لأي شخص الدخول أو رؤية أي ميزة من ميزات البرنامج إلا بعد تسجيل الدخول برقم الموبايل وكلمة المرور -->
+  <div id="authGateView" class="fixed inset-0 z-50 bg-gradient-to-b from-slate-950 via-brand-950 to-slate-950 flex flex-col justify-between p-4 sm:p-6 overflow-y-auto">
+    
+    <!-- Top Live Counter Banner (عداد المشتركين اللحظي) -->
+    <div class="w-full max-w-sm mx-auto pt-4 text-center">
+      <div class="inline-flex items-center gap-2 bg-slate-900/80 border border-gold-500/30 px-4 py-2 rounded-2xl shadow-lg backdrop-blur-md">
+        <i class="fa-solid fa-users text-gold-400 text-sm"></i>
+        <span class="text-xs text-slate-300 font-medium">عدد المشتركين:</span>
+        <span class="text-base font-black text-gold-300 font-mono" id="liveSubscribersCounter">--</span>
+        <span class="text-xs text-brand-300 font-bold">مشترك</span>
+      </div>
+    </div>
+
+    <!-- Center Card: Form Container -->
+    <div class="w-full max-w-sm mx-auto my-auto bg-slate-900/90 border border-brand-800/60 rounded-3xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl space-y-5">
+      
+      <!-- Logo Header -->
+      <div class="text-center space-y-2">
+        <div class="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-gold-500 to-brand-400 shadow-xl shadow-brand-500/20">
+          <img src="assets/logo.svg" alt="شعار تحويشة استغفار" class="w-full h-full rounded-full object-cover">
+        </div>
+        <div>
+          <h2 class="text-xl font-black bg-gradient-to-l from-gold-200 via-white to-brand-300 bg-clip-text text-transparent" id="authGateTitle">
+            تسجيل الدخول إلى حسابك
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5" id="authGateSubtitle">
+            بياناتك المالية والشخصية محمية بالكامل ومشفرة
+          </p>
+        </div>
+      </div>
+
+      <!-- Login Form (NO CREDENTIAL LEAKS, CLEAN & SECURE) -->
+      <form id="gateLoginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">رقم الموبايل</label>
+          <div class="relative">
+            <input type="tel" id="loginPhone" placeholder="010xxxxxxxx" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-3 text-sm text-white focus:border-brand-500 focus:outline-none pl-10 font-mono transition-colors">
+            <i class="fa-solid fa-mobile-screen absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">كلمة المرور</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-3.5 py-3 text-sm text-white focus:border-brand-500 focus:outline-none pl-10 transition-colors">
+            <button type="button" onclick="togglePasswordVisibility('loginPassword', 'eyeIconLogin')" class="absolute left-3.5 top-3.5 text-slate-400 hover:text-white text-sm" title="إظهار/إخفاء كلمة المرور">
+              <i id="eyeIconLogin" class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white text-sm font-black rounded-2xl transition-all shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 active:scale-95">
+          <span>دخول</span>
+          <i class="fa-solid fa-arrow-left text-xs"></i>
+        </button>
+
+        <div class="text-center pt-2">
+          <button type="button" onclick="toggleGateAuthMode('register')" class="text-xs text-brand-400 hover:text-brand-300 font-bold py-1">
+            ليس لديك حساب؟ اشترك مجاناً الآن
+          </button>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="gateRegisterForm" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">الاسم بالكامل</label>
+          <input type="text" id="regName" placeholder="الاسم ثلاثي" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">رقم الموبايل</label>
+          <input type="tel" id="regPhone" placeholder="010xxxxxxxx" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-brand-500 focus:outline-none font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">البريد الإلكتروني (لتفعيل الحساب)</label>
+          <input type="email" id="regEmail" placeholder="your@email.com" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gold-300 mb-1">اسم المتوفي للدعاء له (كل 90 دقيقة)</label>
+          <input type="text" id="regDeceasedName" placeholder="والدي / والدتي / فلان رحمه الله" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-brand-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">كلمة المرور</label>
+          <div class="relative">
+            <input type="password" id="regPassword" placeholder="••••••••" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:border-brand-500 focus:outline-none pl-9">
+            <button type="button" onclick="togglePasswordVisibility('regPassword', 'eyeIconReg')" class="absolute left-3 top-2.5 text-slate-400 hover:text-white text-xs">
+              <i id="eyeIconReg" class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-brand-600/30 active:scale-95">
+          إنشاء حساب وتفعيل برمز الإيميل
+        </button>
+
+        <div class="text-center pt-1">
+          <button type="button" onclick="toggleGateAuthMode('login')" class="text-xs text-brand-400 hover:text-brand-300 font-bold py-1">
+            لديك حساب بالفعل؟ تسجيل الدخول
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+    <!-- Bottom Footer Note & Cloud Server Config -->
+    <div class="w-full max-w-sm mx-auto pb-4 text-center text-[10px] text-slate-400 space-y-1.5">
+      <div>تحويشة استغفار v2.0 • بركة الرزق ونور الاستغفار وحفظ الأموال</div>
+      <button type="button" onclick="openServerConfigModal()" class="text-brand-400 hover:text-brand-300 underline inline-flex items-center gap-1 font-medium">
+        <i class="fa-solid fa-cloud"></i>
+        <span>ربط السيرفر السحابي (أونلاين)</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ================= 2. MAIN APPLICATION SHELL (VISIBLE ONLY AFTER LOGIN) ================= -->
+  <div id="appShell" class="hidden min-h-screen flex flex-col pb-36 md:pb-8">
+
+    <!-- Mobile-First Compact Top App Header with Safe Area Padding -->
+    <header class="bg-brand-950/95 border-b border-brand-800/40 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-6 py-3 mobile-safe-header shadow-lg">
+      <div class="max-w-6xl mx-auto flex items-center justify-between">
+        
+        <!-- App Logo & Title -->
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('dashboard')">
+          <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-gold-500 to-brand-400 shadow-md">
+            <img src="assets/logo.svg" alt="شعار" class="w-full h-full rounded-full object-cover">
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-base font-black bg-gradient-to-l from-gold-200 via-white to-brand-300 bg-clip-text text-transparent">
+                تحويشة استغفار
+              </h1>
+              <span id="adminBadge" class="hidden text-[8px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono">أدمن</span>
+            </div>
+            <div class="text-[10px] text-brand-300/80 font-medium" id="headerGreetingText">أهلاً بك، <span id="headerUserName">...</span></div>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs (Hidden on Mobile) -->
+        <nav id="desktopNav" class="hidden md:flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-2xl border border-brand-900/60 shadow-inner">
+          <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab active flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
+          </button>
+          <button onclick="switchTab('religious')" id="tab-religious" class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
+            <i class="fa-solid fa-kaaba text-gold-400"></i>
+            <span>الأذكار</span>
+          </button>
+          <button onclick="switchTab('financial')" id="tab-financial" class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
+            <i class="fa-solid fa-coins text-emerald-400"></i>
+            <span>تحويشة</span>
+          </button>
+          <button onclick="switchTab('vehicles')" id="tab-vehicles" class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
+            <i class="fa-solid fa-car text-blue-400"></i>
+            <span>مركباتي</span>
+          </button>
+          <button onclick="switchTab('admin')" id="tab-admin" class="nav-tab hidden flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-amber-400">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>الإدارة</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Controls -->
+        <div class="flex items-center gap-1.5">
+          <!-- Floating alert test button (icon) -->
+          <button onclick="testFloatingAlert('azkar')" title="تجربة التنبيه العائم الآن" class="w-8 h-8 rounded-xl bg-brand-900/60 hover:bg-brand-800 text-gold-300 border border-brand-700/50 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-bell"></i>
+          </button>
+          <!-- User Profile Settings -->
+          <button onclick="openProfileModal()" title="إعدادات الحساب واسم المتوفي" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-user-gear"></i>
+          </button>
+          <!-- Logout -->
+          <button onclick="logout()" title="تسجيل الخروج" class="w-8 h-8 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/40 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Urgent Alerts Floating Banner -->
+    <div id="urgentAlertsBar" class="hidden bg-gradient-to-r from-amber-900/95 via-amber-800/95 to-amber-900/95 border-b border-amber-600/50 px-4 py-2 text-amber-200 text-xs flex items-center justify-between sticky top-[60px] z-20 backdrop-blur-md">
+      <div class="flex items-center gap-2">
+        <span class="flex h-2.5 w-2.5 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+        </span>
+        <i class="fa-solid fa-bell text-amber-300 text-xs"></i>
+        <span id="urgentAlertsText" class="font-medium text-[11px] leading-tight"></span>
+      </div>
+      <button onclick="dismissUrgentAlert()" class="text-[10px] bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded border border-amber-700/50 shrink-0">
+        ✕
+      </button>
+    </div>
+
+    <!-- Main Views Container (Full Responsive Width) -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4">
+
+      <!-- ================= TAB 1: DASHBOARD ================= -->
+      <section id="view-dashboard" class="tab-view space-y-4">
+        
+        <!-- Welcome Hero Banner -->
+        <div class="rounded-3xl bg-gradient-to-r from-brand-950 via-brand-900 to-slate-900 border border-brand-800/50 p-4 sm:p-6 shadow-xl relative overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1.5">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-800/60 border border-brand-600/30 text-brand-200 text-[10px] font-semibold">
+                <i class="fa-solid fa-mosque text-gold-400"></i>
+                <span id="currentHijriDate">...</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black text-white">
+                أهلاً بك، <span id="welcomeUserName" class="text-gold-300">...</span>
+              </h2>
+              <p class="text-[11px] text-slate-300 max-w-md leading-relaxed">
+                «فَقُلْتُ اسْتَغْفِرُوا رَبَّكُمْ إِنَّهُ كَانَ غَفَّارًا • يُرْسِلِ السَّمَاءَ عَلَيْكُمْ مِدْرَارًا • وَيُمْدِدْكُمْ بِأَمْوَالٍ وَبَنِينَ»
+              </p>
+            </div>
+
+            <!-- Hero Deceased Card -->
+            <div class="bg-black/40 border border-brand-700/40 rounded-2xl p-3 sm:w-72 space-y-1.5 backdrop-blur-md">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-gold-400 font-bold flex items-center gap-1">
+                  <i class="fa-solid fa-hands-praying"></i> دعاء المتوفي
+                </span>
+                <button onclick="openProfileModal()" class="text-[10px] text-brand-300 hover:text-white underline">
+                  تعديل الاسم
+                </button>
+              </div>
+              <p class="text-xs text-white/90 font-medium leading-relaxed" id="heroDeceasedPreview">
+                اللهم اغفر لـ <strong class="text-gold-300" id="heroDeceasedName">جميع موتى المسلمين</strong> وارحمهم وعافهم.
+              </p>
+              <div class="text-[9px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5">
+                <span>تنبيه عائم: كل 90 دقيقة</span>
+                <button onclick="testFloatingAlert('duaa')" class="text-gold-400 font-bold">
+                  تجربة ↗
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Grid (Responsive Cards) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          
+          <!-- Income -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 block">الدخل الشهري</span>
+            <div class="text-base sm:text-xl font-black text-white">
+              <span id="statTotalIncome">0</span>
+              <span class="text-[10px] text-brand-400">ج</span>
+            </div>
+            <div class="text-[9px] text-brand-300" id="statDepositsIncome">0 ج عوائد</div>
+          </div>
+
+          <!-- Spent -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 block">إجمالي المنصرف</span>
+            <div class="text-base sm:text-xl font-black text-white">
+              <span id="statTotalSpent">0</span>
+              <span class="text-[10px] text-red-400">ج</span>
+            </div>
+            <div class="text-[9px] text-slate-400">شامل الالتزامات</div>
+          </div>
+
+          <!-- Savings -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 block">التحويشة المتوقعة</span>
+            <div class="text-base sm:text-xl font-black text-gold-300">
+              <span id="statNetSavings">0</span>
+              <span class="text-[10px] text-gold-400">ج</span>
+            </div>
+            <div class="text-[9px] text-gold-400" id="statSavingsRate">0% ادخار</div>
+          </div>
+
+          <!-- Fixed -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 block">جمعيات وأقساط</span>
+            <div class="text-base sm:text-xl font-black text-white">
+              <span id="statFixedObligations">0</span>
+              <span class="text-[10px] text-blue-400">ج/شهر</span>
+            </div>
+            <div class="text-[9px] text-slate-400">
+              <span id="statCirclesCount">0 جمعية</span> • <span id="statInstallmentsCount">0 قسط</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Two Column Spotlight -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          
+          <!-- Live Athkar Spotlight -->
+          <div class="bg-gradient-to-b from-slate-900 to-brand-950 border border-brand-800/50 rounded-3xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-lg">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                <span class="text-xs font-bold text-brand-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-kaaba text-gold-400"></i> نفحة اليوم والذكر الحي
+                </span>
+                <button onclick="fetchNextReligious('azkar')" class="text-[11px] text-brand-400 hover:text-white px-2 py-0.5 rounded bg-brand-900/60 border border-brand-700/50">
+                  ذكر آخر ↻
+                </button>
+              </div>
+
+              <div class="py-4 text-center space-y-2">
+                <span class="text-[10px] font-bold text-gold-300 bg-gold-950/60 px-2.5 py-0.5 rounded-full border border-gold-800/50" id="dashThikrCategory">
+                  استغفار وتسبيح
+                </span>
+                <div class="text-base sm:text-lg font-bold font-quran text-white leading-relaxed" id="dashThikrText">
+                  « سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ »
+                </div>
+                <p class="text-[11px] text-brand-200/80" id="dashThikrFadl">
+                  كلمتان خفيفتان على اللسان، ثقيلتان في الميزان.
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[11px]">
+              <span class="text-slate-400">تنبيه عائم كل 30 دقيقة</span>
+              <button onclick="testFloatingAlert('azkar')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold flex items-center gap-1 shadow">
+                <span>عرض في تنبيه عائم</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Advisor Summary Widget -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-5 flex flex-col justify-between space-y-3 shadow-lg">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                  <i class="fa-solid fa-brain text-purple-400"></i> مستشار الذكاء الاصطناعي
+                </span>
+                <button onclick="switchTab('financial')" class="text-[11px] text-brand-400">
+                  تفاصيل التحويشة ←
+                </button>
+              </div>
+
+              <div class="py-3 space-y-2.5">
+                <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-purple-300 font-bold">تقييم الوضع المالي</span>
+                    <span id="dashAiScore" class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-bold">85/100</span>
+                  </div>
+                  <p id="dashAiVerdict" class="text-[11px] text-slate-300 leading-relaxed">
+                    جاري فحص النفقات والدخل الشهري...
+                  </p>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-brand-950/40 border border-brand-800/40 text-[11px] space-y-1">
+                  <span class="text-gold-300 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-lightbulb"></i> أفضل توصية لتوفير المال:
+                  </span>
+                  <p id="dashAiTopRecText" class="text-slate-300 leading-relaxed">
+                    توجيه فائض الدخل إلى الادخار المنضبط والاستثمار في الشهادات والذهب.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+              <span class="text-slate-400">تحليل ذكي تلقائي</span>
+              <button onclick="switchTab('financial')" class="text-gold-400 font-bold">
+                عرض تقرير نهاية الشهر ←
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= TAB 2: RELIGIOUS ================= -->
+      <section id="view-religious" class="tab-view hidden space-y-4">
+        
+        <div class="bg-slate-900/60 p-4 rounded-2xl border border-brand-900/40 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-kaaba text-gold-400"></i>
+              <span>الأذكار والقرآن والتنبيهات الموقوتة</span>
+            </h2>
+            <p class="text-[10px] text-slate-400">كل 30 دقيقة ذكر • كل 60 دقيقة 5 آيات • كل 90 دقيقة دعاء للمتوفي</p>
+          </div>
+          <button onclick="openProfileModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 text-[11px] font-bold text-slate-200 border border-slate-700">
+            تعديل المتوفي
+          </button>
+        </div>
+
+        <!-- 3 Pillars Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          
+          <!-- 30m Azkar -->
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-900 text-brand-300">كل 30 دقيقة</span>
+                <i class="fa-solid fa-bell text-brand-400 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-black text-white mt-2">تذكير بذكر واستغفار</h3>
+              <div class="my-3 p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1.5 min-h-[110px] flex flex-col justify-center">
+                <p class="font-quran text-base font-bold text-white leading-relaxed" id="religiousAzkarText">جاري التحميل...</p>
+                <p class="text-[10px] text-brand-300" id="religiousAzkarFadl"></p>
+              </div>
+            </div>
+            <div class="space-y-1.5 pt-1">
+              <button onclick="fetchNextReligious('azkar')" class="w-full py-1.5 bg-slate-800 text-slate-200 text-xs font-bold rounded-xl">ذكر تالي ↻</button>
+              <button onclick="testFloatingAlert('azkar')" class="w-full py-2 bg-brand-600 text-white text-xs font-bold rounded-xl shadow">عرض في تنبيه عائم 🔔</button>
+            </div>
+          </div>
+
+          <!-- 60m Quran -->
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950 text-gold-300">كل 60 دقيقة</span>
+                <i class="fa-solid fa-book-quran text-gold-400 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-black text-white mt-2" id="religiousQuranTitle">5 آيات من القرآن الكريم</h3>
+              <div class="my-3 p-3 rounded-2xl bg-slate-950 border border-slate-800 text-right space-y-1 min-h-[110px] max-h-[140px] overflow-y-auto" id="religiousQuranContainer">
+                <p class="font-quran text-xs text-slate-200">جاري تحميل الآيات...</p>
+              </div>
+            </div>
+            <div class="space-y-1.5 pt-1">
+              <button onclick="fetchNextReligious('quran')" class="w-full py-1.5 bg-slate-800 text-slate-200 text-xs font-bold rounded-xl">خمس آيات أخرى ↻</button>
+              <button onclick="testFloatingAlert('quran')" class="w-full py-2 bg-amber-600 text-white text-xs font-bold rounded-xl shadow">عرض في تنبيه عائم 📖</button>
+            </div>
+          </div>
+
+          <!-- 90m Duaa -->
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-950 text-blue-300">كل 90 دقيقة</span>
+                <i class="fa-solid fa-hands-praying text-blue-400 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-black text-white mt-2">دعاء للمتوفي: <span class="text-gold-300" id="religiousDeceasedNameDisplay">...</span></h3>
+              <div class="my-3 p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-1 min-h-[110px] flex flex-col justify-center">
+                <p class="font-quran text-xs font-semibold text-slate-200 leading-relaxed" id="religiousDuaaText">جاري تحميل الدعاء...</p>
+              </div>
+            </div>
+            <div class="space-y-1.5 pt-1">
+              <button onclick="fetchNextReligious('duaa')" class="w-full py-1.5 bg-slate-800 text-slate-200 text-xs font-bold rounded-xl">دعاء آخر ↻</button>
+              <button onclick="testFloatingAlert('duaa')" class="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow">عرض في تنبيه عائم 🤲</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Interactive Digital Tasbih -->
+        <div class="bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 border border-brand-800/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center space-y-3 shadow-xl">
+          <span class="text-[10px] font-bold text-gold-400 bg-gold-950/60 px-3 py-0.5 rounded-full border border-gold-800/60">
+            سبحة الاستغفار والتسبيح اليومية
+          </span>
+          <div class="text-xs font-bold text-slate-300" id="currentTasbihLabel">أستغفر الله العظيم وأتوب إليه</div>
+
+          <!-- Clicker Button -->
+          <button onclick="clickTasbih()" class="w-28 h-28 rounded-full bg-gradient-to-tr from-brand-700 via-brand-500 to-emerald-400 text-white font-black text-3xl shadow-2xl shadow-brand-500/40 border-4 border-gold-400 active:scale-90 transition-all flex flex-col items-center justify-center">
+            <span id="tasbihCounter">0</span>
+            <span class="text-[9px] font-normal text-brand-100">تسبيحة</span>
+          </button>
+
+          <!-- Dhikr Switch Buttons -->
+          <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+            <button onclick="setTasbihDhikr('أستغفر الله العظيم وأتوب إليه')" class="px-2 py-1 text-[11px] bg-slate-800 text-slate-200 rounded-lg">استغفار</button>
+            <button onclick="setTasbihDhikr('سبحان الله وبحمده سبحان الله العظيم')" class="px-2 py-1 text-[11px] bg-slate-800 text-slate-200 rounded-lg">تسبيح</button>
+            <button onclick="setTasbihDhikr('لا حول ولا قوة إلا بالله العلي العظيم')" class="px-2 py-1 text-[11px] bg-slate-800 text-slate-200 rounded-lg">حوقلة</button>
+            <button onclick="setTasbihDhikr('اللهم صل وسلم على نبينا محمد')" class="px-2 py-1 text-[11px] bg-slate-800 text-slate-200 rounded-lg">صلاة على النبي</button>
+          </div>
+
+          <button onclick="resetTasbih()" class="text-slate-500 hover:text-red-400 text-[10px]">
+            تصفير عداد السبحة ↻
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ================= TAB 3: FINANCIAL ("تحويشة") ================= -->
+      <section id="view-financial" class="tab-view hidden space-y-4">
+        
+        <!-- Financial Header Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between shadow-lg">
+          <div>
+            <h2 class="text-base font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-coins text-gold-400"></i>
+              <span>تحويشة: الميزانية الذكية</span>
+            </h2>
+            <p class="text-[10px] text-slate-400">أدر مصاريفك وجمعياتك وأقساطك مع تنبيهات مسبقة بـ 5 أيام</p>
+          </div>
+
+          <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-2xl border border-slate-800">
+            <div class="text-left pr-1">
+              <span class="text-[9px] text-slate-400 block font-bold">الدخل الشهري</span>
+              <div class="text-sm font-black text-brand-400 font-mono">
+                <span id="displayIncomeValue">0</span> ج
+              </div>
+            </div>
+            <button onclick="openUpdateIncomeModal()" class="w-7 h-7 bg-brand-600 text-white rounded-lg flex items-center justify-center text-xs">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5 Quick Add Action Buttons -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <button onclick="openAddExpenseModal()" class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-2.5 text-right active:scale-95 transition-all">
+            <div class="w-8 h-8 rounded-xl bg-red-950 text-red-400 flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">+ مصروف يومي</div>
+              <span class="text-[9px] text-slate-400">علاج، خروج، طعام</span>
+            </div>
+          </button>
+
+          <button onclick="openAddReceivableModal()" class="p-3 bg-slate-900 border border-emerald-800/40 rounded-2xl flex items-center gap-2.5 text-right active:scale-95 transition-all">
+            <div class="w-8 h-8 rounded-xl bg-emerald-950 text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-emerald-300">+ مستحق لي</div>
+              <span class="text-[9px] text-slate-400">فلوس ليا عند الناس</span>
+            </div>
+          </button>
+
+          <button onclick="openAddCircleModal()" class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-2.5 text-right active:scale-95 transition-all">
+            <div class="w-8 h-8 rounded-xl bg-amber-950 text-gold-400 flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">+ جمعية</div>
+              <span class="text-[9px] text-slate-400">قسط وموعد القبض</span>
+            </div>
+          </button>
+
+          <button onclick="openAddDepositModal()" class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-2.5 text-right active:scale-95 transition-all">
+            <div class="w-8 h-8 rounded-xl bg-emerald-950 text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-landmark"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">+ شهادة/وديعة</div>
+              <span class="text-[9px] text-slate-400">عائد يضاف للدخل</span>
+            </div>
+          </button>
+
+          <button onclick="openAddInstallmentModal()" class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-2.5 text-right active:scale-95 transition-all">
+            <div class="w-8 h-8 rounded-xl bg-blue-950 text-blue-400 flex items-center justify-center shrink-0 text-xs">
+              <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-white">+ قسط (شهري/سنوي)</div>
+              <span class="text-[9px] text-slate-400">تنبيه قبلها بـ 5 أيام أو شهر</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Lists (Receivables, Circles, Deposits, Installments) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          <!-- Receivables (مستحقات ليا) -->
+          <div class="bg-slate-900 border border-emerald-900/40 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-hand-holding-dollar text-emerald-400"></i> مستحقاتي (فلوس ليا)
+              </span>
+              <button onclick="openAddReceivableModal()" class="text-[10px] text-emerald-400 font-bold">+ إضافة</button>
+            </div>
+            <div id="receivablesListContainer" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+          </div>
+
+          <!-- Circles -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-users text-gold-400"></i> الجمعيات المشترك بها
+              </span>
+              <button onclick="openAddCircleModal()" class="text-[10px] text-gold-400 font-bold">+ إضافة</button>
+            </div>
+            <div id="circlesListContainer" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+          </div>
+
+          <!-- Deposits -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-landmark text-emerald-400"></i> الشهادات والودائع
+              </span>
+              <button onclick="openAddDepositModal()" class="text-[10px] text-emerald-400 font-bold">+ إضافة</button>
+            </div>
+            <div id="depositsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+          </div>
+
+          <!-- Installments -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-credit-card text-blue-400"></i> الأقساط (شهرية وسنوية)
+              </span>
+              <button onclick="openAddInstallmentModal()" class="text-[10px] text-blue-400 font-bold">+ إضافة</button>
+            </div>
+            <div id="installmentsListContainer" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+          </div>
+
+        </div>
+
+        <!-- Daily Expenses Log Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div>
+              <h3 class="text-xs sm:text-sm font-black text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-receipt text-red-400"></i> سجل المصروفات اليومية
+              </h3>
+              <span class="text-[10px] text-slate-400">علاج، خروجات، طعام، مواصلات</span>
+            </div>
+            <button onclick="openAddExpenseModal()" class="px-3 py-1 bg-red-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow">
+              <i class="fa-solid fa-plus text-[10px]"></i> مصروف
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">التاريخ</th>
+                  <th class="p-2.5">الفئة</th>
+                  <th class="p-2.5">الوصف</th>
+                  <th class="p-2.5">المبلغ</th>
+                  <th class="p-2.5 text-center">حذف</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AI Financial Advisor & Month-End Analytics -->
+        <div class="bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 border border-purple-500/40 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/10">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 text-[10px] font-bold border border-purple-800/50">
+                تقرير نهاية الشهر بالذكاء الاصطناعي
+              </span>
+              <h3 class="text-base font-black text-white mt-1">كيف توفر وأين تستثمر الفائض؟</h3>
+            </div>
+            <button onclick="refreshAiAnalysis()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1 shrink-0 self-start sm:self-auto">
+              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> تحديث التحليل
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Pie Chart -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center">
+              <span class="text-[11px] font-bold text-slate-300 mb-2">توزيع المصروفات</span>
+              <div class="w-full max-w-[200px] h-[190px] relative">
+                <canvas id="expensesPieChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Recommendations to cut expenses -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <span class="text-xs font-bold text-gold-300 flex items-center gap-1">
+                <i class="fa-solid fa-scissors"></i> اقتراحات لتقليل النفقات
+              </span>
+              <div id="aiRecommendationsList" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
+            </div>
+
+            <!-- Investment Proposals -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                <i class="fa-solid fa-arrow-trend-up"></i> عروض استثمار الفائض
+              </span>
+              <div id="aiInvestmentList" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= TAB 4: VEHICLES ("مركباتي") ================= -->
+      <section id="view-vehicles" class="tab-view hidden space-y-4">
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between shadow-lg">
+          <div>
+            <h2 class="text-base font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-car text-blue-400"></i>
+              <span>مركباتي: رخص القيادة وتسيير السيارات</span>
+            </h2>
+            <p class="text-[10px] text-slate-400">تنبيه ذكي قبل موعد الانتهاء بشهر كامل لتجهيز الفحص والتجديد</p>
+          </div>
+          <button onclick="openAddVehicleModal()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-plus text-[10px]"></i> رخصة جديدة
+          </button>
+        </div>
+
+        <div id="vehiclesCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+
+      </section>
+
+      <!-- ================= TAB 5: ADMIN DASHBOARD (الإدارة) ================= -->
+      <section id="view-admin" class="tab-view hidden space-y-4">
+        
+        <div class="bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border border-amber-600/40 rounded-3xl p-4 space-y-2 shadow-xl">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-amber-900 text-amber-300 text-[10px] font-bold">
+              لوحة التحكم والإدارة العامة
+            </span>
+            <div class="text-left font-mono">
+              <span class="text-[10px] text-slate-400">المشتركون: </span>
+              <strong class="text-base text-amber-300" id="adminTotalUsersCount">0</strong>
+            </div>
+          </div>
+          <h2 class="text-base font-black text-white">متابعة العملاء والرسائل العامة</h2>
+        </div>
+
+        <!-- Cloud Server Config -->
+        <div class="bg-slate-900 border border-brand-800/60 rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-cloud text-brand-400"></i> إعدادات الربط السحابي (Cloud Server)
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 text-brand-300 font-bold" id="cloudStatusBadge">محلي</span>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-[11px] font-bold text-slate-300">رابط السيرفر السحابي لحفظ بيانات الـ 1000 عميل أونلاين</label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="url" id="cloudServerUrlInput" placeholder="https://tahwesha-api.onrender.com" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none font-mono" dir="ltr">
+              <button onclick="saveCloudServerUrl()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold shrink-0 shadow">
+                حفظ الرابط
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Broadcast Message Sender -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+          <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-bullhorn text-amber-400"></i> إرسال تنبيه عائم لجميع المشتركين
+          </h3>
+          <form onsubmit="handleSendBroadcast(event)" class="space-y-2">
+            <input type="text" id="broadcastTitleInput" placeholder="عنوان التنبيه العام" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+            <input type="text" id="broadcastMessageInput" placeholder="نص الرسالة التي ستصل للجميع..." required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+            <button type="submit" class="w-full py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow">
+              بث التنبيه لجميع العملاء الآن 📢
+            </button>
+          </form>
+        </div>
+
+        <!-- Subscribers Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-users-gear text-brand-400"></i> التحكم الكامل في المشتركين وإرسال الرسائل المخصصة
+            </h3>
+            <span class="text-[10px] text-slate-400 font-bold" id="adminTableSummary"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                <tr>
+                  <th class="p-2.5">المشترك</th>
+                  <th class="p-2.5">الموبايل والإيميل</th>
+                  <th class="p-2.5">المتوفي</th>
+                  <th class="p-2.5">حالة الحساب</th>
+                  <th class="p-2.5 text-center">التحكم والإجراءات السريعة</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ================= MOBILE NATIVE BOTTOM NAVIGATION BAR ================= -->
+    <nav id="mobileBottomNav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-brand-900/60 backdrop-blur-xl flex items-center justify-around py-2 px-1 shadow-2xl safe-area-bottom">
+      <button onclick="switchTab('dashboard')" id="mob-tab-dashboard" class="mob-nav-btn active flex flex-col items-center gap-1 text-[10px] font-bold text-brand-400 transition-colors">
+        <i class="fa-solid fa-house text-base"></i>
+        <span>الرئيسية</span>
+      </button>
+      <button onclick="switchTab('religious')" id="mob-tab-religious" class="mob-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 transition-colors">
+        <i class="fa-solid fa-kaaba text-base"></i>
+        <span>الأذكار</span>
+      </button>
+      <button onclick="switchTab('financial')" id="mob-tab-financial" class="mob-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 transition-colors">
+        <i class="fa-solid fa-coins text-base"></i>
+        <span>تحويشة</span>
+      </button>
+      <button onclick="switchTab('vehicles')" id="mob-tab-vehicles" class="mob-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 transition-colors">
+        <i class="fa-solid fa-car text-base"></i>
+        <span>مركباتي</span>
+      </button>
+      <button onclick="switchTab('admin')" id="mob-tab-admin" class="mob-nav-btn hidden flex flex-col items-center gap-1 text-[10px] font-bold text-amber-400 transition-colors">
+        <i class="fa-solid fa-shield-halved text-base"></i>
+        <span>الإدارة</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ================= IN-APP FLOATING OVERLAY ALERT (CARD WITH CLOSE BUTTON ✕) ================= -->
+  <!-- يظهر كتنبيه عائم أنيق داخل التطبيق مع زر إغلاق صريح ✕ وبنفس الوقت يطلق إشعار Heads-up على شاشة الموبايل -->
+  <div id="inAppFloatingAlert" class="hidden fixed top-4 left-3 right-3 sm:left-auto sm:right-4 sm:w-96 z-50 bg-gradient-to-br from-brand-950 via-slate-950 to-brand-900 border-2 border-gold-500 rounded-3xl shadow-2xl p-4 space-y-2.5 backdrop-blur-xl animate-bounceIn">
+    <div class="flex items-center justify-between border-b border-gold-500/30 pb-2">
+      <div class="flex items-center gap-2">
+        <img src="assets/logo.svg" alt="logo" class="w-7 h-7 rounded-full border border-gold-400">
+        <span class="text-xs font-black text-gold-300" id="inAppAlertTitle">تنبيه عائم</span>
+      </div>
+      <!-- زر إغلاق التنبيه الصريح المباشر -->
+      <button onclick="closeInAppFloatingAlert()" class="text-xs bg-red-900/60 hover:bg-red-800 text-red-200 px-2.5 py-1 rounded-xl border border-red-700/50 flex items-center gap-1 active:scale-95">
+        <span>إغلاق</span>
+        <span class="font-bold">✕</span>
+      </button>
+    </div>
+
+    <div class="py-1 text-center text-sm font-bold text-white font-quran leading-relaxed" id="inAppAlertContent"></div>
+    <div class="text-[11px] text-brand-300 bg-brand-950/60 p-2 rounded-xl border border-brand-800/40 text-center" id="inAppAlertNote" style="display: none;"></div>
+
+    <div class="flex items-center justify-between pt-1 border-t border-white/10 text-[10px] text-slate-400">
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        تنبيه عائم على الشاشة
+      </span>
+      <button onclick="closeInAppFloatingAlert()" class="text-gold-400 hover:text-white font-bold">
+        تمت القراءة ✓
+      </button>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <!-- OTP Verification Modal -->
+  <div id="otpModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-brand-950 text-gold-400 border border-brand-700 flex items-center justify-center mx-auto text-lg">
+        <i class="fa-solid fa-envelope-open-text"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-black text-white">تفعيل الحساب برمز الإيميل</h3>
+        <p class="text-xs text-slate-300 mt-1">أدخل رمز التحقق السري المكون من 6 أرقام لتأكيد حسابك</p>
+      </div>
+
+      <div class="bg-slate-950/90 border border-brand-700/50 p-3 rounded-2xl text-xs text-slate-300 space-y-1">
+        <div class="flex items-center gap-1.5 text-brand-400 font-bold">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>تم إرسال رمز التفعيل إلى بريدك الإلكتروني</span>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed" id="otpTargetEmailText">
+          يرجى فتح صندوق الوارد في إيميلك وإدخال الرمز السري.
+        </p>
+        <span class="text-[10px] text-amber-400 block pt-0.5">💡 إذا لم تجده في البريد الوارد، راجع مجلد الرسائل غير المرغوب فيها (Spam / Junk).</span>
+      </div>
+
+      <form onsubmit="handleOtpSubmit(event)" class="space-y-3">
+        <input type="text" id="otpInput" maxlength="6" placeholder="123456" required class="w-full text-center text-xl font-mono tracking-widest bg-slate-950 border border-slate-800 rounded-xl py-2.5 text-white focus:outline-none">
+        <button type="submit" class="w-full py-2.5 bg-brand-600 text-white text-xs font-bold rounded-xl shadow">تأكيد التفعيل والدخول</button>
+      </form>
+
+      <div class="text-center pt-1">
+        <button type="button" onclick="resendOtpCode()" class="text-[11px] text-brand-400 hover:text-brand-300 underline font-semibold">
+          لم يصلك الرمز؟ إعادة إرسال كود التفعيل للإيميل
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إعدادات الحساب والمتوفي</h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleProfileUpdate(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">الاسم</label>
+          <input type="text" id="profName" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">البريد الإلكتروني</label>
+          <input type="email" id="profEmail" placeholder="name@example.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-gold-300 font-bold mb-1">اسم المتوفي للدعاء له (كل 90 دقيقة)</label>
+          <input type="text" id="profDeceasedName" placeholder="والدي / والدتي رحمه الله" class="w-full bg-slate-950 border border-gold-500/40 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">تغيير كلمة المرور (اختياري)</label>
+          <input type="password" id="profPassword" placeholder="اتركه فارغاً لعدم التغيير" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeProfileModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-brand-600 text-white font-bold rounded-xl">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Expense Modal -->
+  <div id="expenseModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إضافة مصروف يومي</h3>
+        <button onclick="closeAddExpenseModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleAddExpense(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">المبلغ (جنيه)</label>
+          <input type="number" step="0.5" id="expAmount" placeholder="250" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold text-sm focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">الفئة</label>
+          <select id="expCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+            <option value="medical">💊 علاج وأدوية وكشوفات</option>
+            <option value="outings">🍽️ خروج وفسح وترفيه</option>
+            <option value="food">🛒 طعام ومستلزمات منزلية</option>
+            <option value="transport">⛽ مواصلات وبنزين</option>
+            <option value="bills">⚡ فواتير كهرباء وغاز وإنترنت</option>
+            <option value="other">📦 أخرى</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">الوصف</label>
+          <input type="text" id="expNote" placeholder="تفاصيل المصروف..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">التاريخ</label>
+          <input type="date" id="expDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddExpenseModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-red-600 text-white font-bold rounded-xl">تسجيل</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Circle Modal -->
+  <div id="circleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إضافة جمعية جديدة</h3>
+        <button onclick="closeAddCircleModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleAddCircle(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">اسم الجمعية</label>
+          <input type="text" id="circleName" placeholder="جمعية الأقارب" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">القسط الشهري (جنيه)</label>
+          <input type="number" id="circleMonthlyAmount" placeholder="2000" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">شهر استلام وقبض دوري</label>
+          <input type="month" id="circlePayoutMonth" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">إجمالي مبلغ القبض</label>
+          <input type="number" id="circlePayoutAmount" placeholder="20000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddCircleModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-600 text-white font-bold rounded-xl">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Deposit Modal -->
+  <div id="depositModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إضافة شهادة أو وديعة بنكية</h3>
+        <button onclick="closeAddDepositModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleAddDeposit(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">اسم الشهادة</label>
+          <input type="text" id="depName" placeholder="شهادة البنك الأهلي" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">اسم البنك</label>
+          <input type="text" id="depBank" placeholder="البنك الأهلي / بنك مصر" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">أصل مبلغ الشهادة / الوديعة (اختياري)</label>
+          <input type="number" id="depPrincipal" placeholder="50000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-emerald-300 font-bold mb-1">العائد الشهري المضاف للدخل (جنيه)</label>
+          <input type="number" id="depMonthlyReturn" placeholder="1125" required class="w-full bg-slate-950 border border-emerald-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">تاريخ الاستحقاق أو فك الشهادة (اختياري)</label>
+          <input type="date" id="depMaturityDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddDepositModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-xl">إضافة</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Installment Modal -->
+  <div id="installmentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إضافة قسط (شهري أو سنوي)</h3>
+        <button onclick="closeAddInstallmentModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form id="addInstallmentForm" onsubmit="handleAddInstallment(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">دورية وسرعة القسط</label>
+          <select id="instFrequency" onchange="toggleInstallmentFrequencyUI()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+            <option value="monthly">📅 قسط شهري (كل شهر - تنبيه قبلها بـ 5 أيام)</option>
+            <option value="yearly">🗓️ قسط سنوي (كل سنة - تنبيه قبلها بشهر كامل)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">عنوان القسط أو السلعة</label>
+          <input type="text" id="instTitle" placeholder="قسط لابتوب / مصاريف سنوية / تأمين" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-blue-300 font-bold mb-1" id="instAmountLabel">قيمة القسط (جنيه)</label>
+          <input type="number" id="instAmount" placeholder="1200" required class="w-full bg-slate-950 border border-blue-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+        </div>
+        <div id="instYearlyMonthWrapper" class="hidden">
+          <label class="block text-amber-300 font-bold mb-1">شهر الاستحقاق السنوي</label>
+          <select id="instDueMonth" class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+            <option value="1">1 - يناير</option>
+            <option value="2">2 - فبراير</option>
+            <option value="3">3 - مارس</option>
+            <option value="4">4 - أبريل</option>
+            <option value="5">5 - مايو</option>
+            <option value="6">6 - يونيو</option>
+            <option value="7">7 - يوليو</option>
+            <option value="8">8 - أغسطس</option>
+            <option value="9">9 - سبتمبر</option>
+            <option value="10">10 - أكتوبر</option>
+            <option value="11">11 - نوفمبر</option>
+            <option value="12">12 - ديسمبر</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-amber-300 font-bold mb-1" id="instDueDayLabel">يوم الاستحقاق الشهري (1 - 31)</label>
+          <input type="number" min="1" max="31" id="instDueDay" placeholder="10" required class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+          <span class="text-[10px] text-slate-400 block mt-0.5" id="instAlertHint">🔔 ينبهك التطبيق قبل موعد القسط بـ 5 أيام تلقائياً!</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2" id="instMonthsWrapper">
+          <div>
+            <label class="block text-slate-300 font-bold mb-1">إجمالي الدفعات (اختياري)</label>
+            <input type="number" id="instTotalMonths" placeholder="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-bold mb-1">المتبقي (اختياري)</label>
+            <input type="number" id="instRemainingMonths" placeholder="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">ملاحظات (اختياري)</label>
+          <input type="text" id="instNotes" placeholder="فيزا بنك مصر / قسط سنوي للسيارة..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddInstallmentModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded-xl">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Vehicle Modal -->
+  <div id="vehicleModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">إضافة رخصة</h3>
+        <button onclick="closeAddVehicleModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleAddVehicle(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">نوع الرخصة</label>
+          <select id="vehType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+            <option value="vehicle_license">🚗 رخصة تسيير مركبة / سيارة</option>
+            <option value="personal_license">🪪 رخصة قيادة شخصية</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">مسمى الرخصة</label>
+          <input type="text" id="vehTitle" placeholder="سيارة هيونداي" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">اسم صاحب الرخصة (اختياري)</label>
+          <input type="text" id="vehOwnerName" placeholder="الاسم ثلاثي" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">رقم اللوحة أو البطاقة</label>
+          <input type="text" id="vehPlateNumber" placeholder="ط ق ل 4821" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">تاريخ التحرير أو الإصدار (اختياري)</label>
+          <input type="date" id="vehIssueDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-amber-300 font-bold mb-1">تاريخ الانتهاء</label>
+          <input type="date" id="vehExpiryDate" required class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+          <span class="text-[10px] text-slate-400 block mt-0.5">⭐ ينبهك التطبيق قبل الانتهاء بشهر للتجديد</span>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">ملاحظات (اختياري)</label>
+          <input type="text" id="vehNotes" placeholder="مرور فيصل / فحص 2027..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddVehicleModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white font-bold rounded-xl">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Receivable Modal (مستحق شهري لي) -->
+  <div id="receivableModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-hand-holding-dollar text-emerald-400"></i>
+          <span>إضافة مستحق شهري لي (فلوس ليا)</span>
+        </h3>
+        <button onclick="closeAddReceivableModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form id="addReceivableForm" onsubmit="handleAddReceivable(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">عنوان المستحق أو البند</label>
+          <input type="text" id="recTitle" placeholder="إيجار شقة / قسط مستحق عند فلان" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-emerald-300 font-bold mb-1">المبلغ المستحق (جنيه)</label>
+          <input type="number" id="recAmount" placeholder="3500" required class="w-full bg-slate-950 border border-emerald-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-amber-300 font-bold mb-1">يوم الاستحقاق من كل شهر (1 - 31)</label>
+          <input type="number" min="1" max="31" id="recDueDay" placeholder="5" required class="w-full bg-slate-950 border border-amber-500/50 rounded-xl px-3 py-2 text-white font-bold focus:outline-none">
+          <span class="text-[10px] text-slate-400 block mt-0.5">🔔 ينبهك التطبيق قبلها بـ 3 أيام ويستمر بالتنبيه لحين الضغط على «تم التحصيل»!</span>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">اسم المدين أو الجهة (اختياري)</label>
+          <input type="text" id="recDebtorName" placeholder="الأستاذ محمد / المستأجر..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">ملاحظات (اختياري)</label>
+          <input type="text" id="recNotes" placeholder="عقد إيجار / سلفة تنتهي في..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddReceivableModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-emerald-600 text-white font-bold rounded-xl">حفظ المستحق</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Update Income Modal -->
+  <div id="incomeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-xs p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">تعديل الدخل الشهري</h3>
+        <button onclick="closeUpdateIncomeModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleUpdateIncome(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">الدخل الشهري (جنيه)</label>
+          <input type="number" id="incomeInputVal" placeholder="18000" required class="w-full bg-slate-950 border border-brand-500/50 rounded-xl px-3 py-2 text-white font-black text-base focus:outline-none">
+        </div>
+        <div class="pt-1 flex justify-end gap-2">
+          <button type="button" onclick="closeUpdateIncomeModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-brand-600 text-white font-bold rounded-xl">تحديث</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Reset Password Modal -->
+  <div id="adminResetPassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-amber-600/50 rounded-3xl w-full max-w-xs p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-amber-300">إعادة تعيين كلمة المرور</h3>
+        <button onclick="closeAdminResetPassModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleAdminResetPassSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="resetTargetUserId">
+        <div>
+          <span class="text-slate-400 block mb-0.5">العميل:</span>
+          <strong id="resetTargetUserName" class="text-white text-xs"></strong>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">كلمة المرور الجديدة</label>
+          <input type="text" id="resetTargetNewPass" placeholder="كلمة المرور الجديدة" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono focus:outline-none">
+        </div>
+        <div class="pt-1 flex justify-end gap-2">
+          <button type="button" onclick="closeAdminResetPassModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-600 text-white font-bold rounded-xl">تعيين</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Send Personal Message Modal -->
+  <div id="adminSendMessageModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-500/50 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-brand-300 flex items-center gap-1.5">
+          <i class="fa-solid fa-paper-plane text-brand-400"></i>
+          <span>إرسال رسالة مخصصة لمشترك</span>
+        </h3>
+        <button onclick="closeAdminSendMessageModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form id="adminSendMsgForm" onsubmit="handleAdminSendMsgSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="msgTargetUserId">
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <span class="text-slate-400">المستلم:</span>
+          <strong id="msgTargetUserName" class="text-brand-300 font-bold"></strong>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">عنوان الرسالة</label>
+          <input type="text" id="adminMsgTitle" placeholder="مثال: تنبيه هام بخصوص الحساب / ترحيب خاص" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">نص الرسالة المخصصة</label>
+          <textarea id="adminMsgBody" rows="4" placeholder="اكتب نص الرسالة التي ستظهر للمشترك على شاشته فور فتح التطبيق..." required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-brand-500 resize-none"></textarea>
+        </div>
+        <div class="pt-1 flex justify-end gap-2">
+          <button type="button" onclick="closeAdminSendMessageModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane text-[10px]"></i>
+            <span>إرسال الرسالة للمشترك</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin User Financial Summary Modal -->
+  <div id="adminUserFinModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-md p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-file-invoice-dollar text-gold-400"></i>
+          <span>الملخص المالي للمشترك: <span id="adminFinModalUserName" class="text-gold-300"></span></span>
+        </h3>
+        <button onclick="closeAdminUserFinModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <div id="adminUserFinContent" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 text-[10px] block">الدخل الشهري:</span>
+            <b id="finModalIncome" class="text-emerald-400 font-mono text-sm">0 ج.م</b>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 text-[10px] block">إجمالي المصروفات:</span>
+            <b id="finModalExpenses" class="text-red-400 font-mono text-sm">0 ج.م</b>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 text-[10px] block">إجمالي الأقساط:</span>
+            <b id="finModalInstallments" class="text-blue-400 font-mono text-sm">0 ج.م</b>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800">
+            <span class="text-slate-400 text-[10px] block">مستحقات له (فلوس له):</span>
+            <b id="finModalReceivables" class="text-amber-400 font-mono text-sm">0 ج.م</b>
+          </div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 text-slate-300 text-[11px]">
+          <div>عدد الجمعيات المشترك بها: <b id="finModalCirclesCount" class="text-white">0</b></div>
+          <div>عدد الشهادات البنكية: <b id="finModalDepositsCount" class="text-white">0</b></div>
+          <div>عدد المركبات/الرخص: <b id="finModalVehiclesCount" class="text-white">0</b></div>
+        </div>
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button type="button" onclick="closeAdminUserFinModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server Config Modal -->
+  <div id="serverConfigModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-800/60 rounded-3xl w-full max-w-xs p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-black text-white">رابط السيرفر السحابي (أونلاين)</h3>
+        <button onclick="closeServerConfigModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <form onsubmit="handleSaveServerConfig(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-bold mb-1">عنوان خادم الإنترنت (URL)</label>
+          <input type="url" id="gateCloudServerUrlInput" placeholder="https://tahweshat-esteghfar.onrender.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono text-[11px] focus:outline-none" dir="ltr">
+          <span class="text-[10px] text-slate-400 block mt-1 leading-relaxed">اتركه فارغاً للاتصال المحلي، أو ألصق رابط سيرفر Render / Railway لتتصل بقاعدة بيانات الإنترنت من أي مكان.</span>
+        </div>
+        <div class="pt-1 flex justify-end gap-2">
+          <button type="button" onclick="closeServerConfigModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
+          <button type="submit" class="px-4 py-1.5 bg-brand-600 text-white font-bold rounded-xl">حفظ والاتصال</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- App Main Scripts -->
+  <script src="embeddedData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

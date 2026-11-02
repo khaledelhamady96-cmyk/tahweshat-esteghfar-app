@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Background Linear Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e" />
+      <stop offset="50%" stop-color="#064e3b" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+
+    <!-- Gold Metallic Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="25%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="75%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+
+    <!-- Emerald Glow Gradient -->
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+
+    <!-- Money Cash Gradient -->
+    <linearGradient id="cashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#065f46" />
+    </linearGradient>
+
+    <!-- Bead Shine Gradient -->
+    <radialGradient id="beadShine" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="85%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#78350f" />
+    </radialGradient>
+
+    <!-- Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="coinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="5" stdDeviation="4" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Circular Outer Shield/Container -->
+  <circle cx="250" cy="250" r="235" fill="url(#bgGrad)" stroke="url(#goldGrad)" stroke-width="8" />
+  <circle cx="250" cy="250" r="222" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="6 4" opacity="0.6" />
+
+  <!-- Background Islamic Arabesque / Sacred Geometry Pattern Subtle -->
+  <g opacity="0.08" stroke="#ffffff" stroke-width="2" fill="none">
+    <polygon points="250,70 377,123 430,250 377,377 250,430 123,377 70,250 123,123" />
+    <polygon points="250,90 363,137 410,250 363,363 250,410 137,363 90,250 137,137" />
+    <circle cx="250" cy="250" r="140" />
+    <circle cx="250" cy="250" r="90" />
+  </g>
+
+  <!-- MONEY SYMBOLS: Banknote & Stacked Golden Coins -->
+  <g transform="translate(145, 175)" filter="url(#coinShadow)">
+    <!-- Banknote (Paper Cash Currency) tilted -->
+    <g transform="rotate(-15, 80, 50)">
+      <rect x="0" y="0" width="160" height="90" rx="8" fill="url(#cashGrad)" stroke="#fef08a" stroke-width="2.5" />
+      <rect x="8" y="8" width="144" height="74" rx="5" fill="none" stroke="#d1fae5" stroke-width="1.5" stroke-dasharray="4 2" />
+      <circle cx="80" cy="45" r="24" fill="#047857" stroke="#fef08a" stroke-width="2" />
+      <text x="80" y="53" font-family="'Cairo', sans-serif" font-weight="900" font-size="20" fill="#fef08a" text-anchor="middle">ج.م</text>
+      <text x="24" y="30" font-family="'Cairo', sans-serif" font-weight="bold" font-size="14" fill="#d1fae5" text-anchor="middle">100</text>
+      <text x="136" y="70" font-family="'Cairo', sans-serif" font-weight="bold" font-size="14" fill="#d1fae5" text-anchor="middle">100</text>
+    </g>
+
+    <!-- Golden Coins Stack -->
+    <!-- Coin 1 -->
+    <ellipse cx="140" cy="95" rx="36" ry="14" fill="#b45309" />
+    <ellipse cx="140" cy="90" rx="36" ry="14" fill="url(#goldGrad)" stroke="#fef08a" stroke-width="1.5" />
+    <!-- Coin 2 -->
+    <ellipse cx="140" cy="78" rx="36" ry="14" fill="#b45309" />
+    <ellipse cx="140" cy="73" rx="36" ry="14" fill="url(#goldGrad)" stroke="#fef08a" stroke-width="1.5" />
+    <!-- Coin 3 (Top with emblem) -->
+    <ellipse cx="140" cy="60" rx="36" ry="14" fill="#b45309" />
+    <ellipse cx="140" cy="55" rx="36" ry="14" fill="url(#goldGrad)" stroke="#fef08a" stroke-width="2" />
+    <circle cx="140" cy="55" r="14" fill="none" stroke="#78350f" stroke-width="1.2" />
+    <path d="M 136 50 L 144 50 L 140 60 Z" fill="#78350f" />
+  </g>
+
+  <!-- PRAYER BEADS (SUBHA - سبحة استغفار) Loop wrapping gracefully around the money -->
+  <g filter="url(#softGlow)">
+    <!-- Subha String Thread -->
+    <path d="M 110,230 C 80,140 180,70 250,75 C 330,80 410,130 405,230 C 400,320 330,375 250,380 C 170,385 100,310 110,230 Z" 
+          fill="none" stroke="#d97706" stroke-width="3" stroke-dasharray="2 3" opacity="0.7" />
+
+    <!-- Subha Beads rendered in a loop around the money -->
+    <!-- Upper loop beads -->
+    <circle cx="250" cy="75" r="14" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="285" cy="80" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="320" cy="92" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="352" cy="112" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="378" cy="140" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="395" cy="172" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="403" cy="208" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+
+    <!-- Separator marker bead (الشاهد الصغير) -->
+    <polygon points="405,235 418,245 405,255 392,245" fill="url(#emeraldGrad)" stroke="#fef08a" stroke-width="1.5" />
+
+    <!-- Right-Lower beads -->
+    <circle cx="398" cy="280" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="380" cy="315" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="350" cy="345" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="315" cy="368" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="278" cy="378" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+
+    <!-- Minaret / Imam Head of Subha (المئذنة / شاهد السبحة الكبير) -->
+    <g transform="translate(250, 380)">
+      <!-- Main tassel holder / minaret -->
+      <path d="M -12,0 C -12,12 -6,22 0,28 C 6,22 12,12 12,0 Z" fill="url(#goldGrad)" stroke="#fef08a" stroke-width="1.5" />
+      <circle cx="0" cy="34" r="6" fill="url(#emeraldGrad)" stroke="#fef08a" stroke-width="1" />
+      <!-- Golden Tassel Threads (الشراشيب الحريرية) -->
+      <path d="M 0,38 C -15,55 -20,80 -18,100" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M 0,38 C -6,60 -8,85 -6,102" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round" />
+      <path d="M 0,38 C 0,60 0,85 0,103" fill="none" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M 0,38 C 6,60 8,85 6,102" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round" />
+      <path d="M 0,38 C 15,55 20,80 18,100" fill="none" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Left-Lower beads -->
+    <circle cx="222" cy="378" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="185" cy="368" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="150" cy="345" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="120" cy="315" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="102" cy="280" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+
+    <!-- Left-Mid Separator bead -->
+    <polygon points="95,245 108,235 95,225 82,235" fill="url(#emeraldGrad)" stroke="#fef08a" stroke-width="1.5" />
+
+    <!-- Left-Upper beads -->
+    <circle cx="97" cy="208" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="105" cy="172" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="122" cy="140" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="148" cy="112" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="180" cy="92" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+    <circle cx="215" cy="80" r="13" fill="url(#beadShine)" stroke="#fef08a" stroke-width="1" />
+  </g>
+
+  <!-- Islamic Crescent & Star accent atop the composition -->
+  <g transform="translate(250, 48) scale(0.65)" filter="url(#coinShadow)">
+    <path d="M 0,-25 A 25,25 0 1,0 20,20 A 20,20 0 1,1 5,-15 Z" fill="url(#goldGrad)" />
+    <!-- 8-pointed Islamic Star -->
+    <polygon points="18,-5 22,-14 31,-14 24,-20 27,-29 18,-24 10,-29 12,-20 6,-14 15,-14" fill="#fef08a" />
+  </g>
+
+  <!-- Typography: تحويشة استغفار -->
+  <g transform="translate(250, 310)">
+    <!-- Subtitle badge: بركة الرزق ونور الاستغفار -->
+    <rect x="-105" y="-30" width="210" height="28" rx="14" fill="#022c22" stroke="url(#goldGrad)" stroke-width="1.5" />
+    <text x="0" y="-12" font-family="'Cairo', 'Tajawal', sans-serif" font-weight="bold" font-size="13" fill="#fef08a" text-anchor="middle" letter-spacing="1">
+      بَرَكَةُ الرِّزْقِ وَنُورُ الاسْتِغْفَارِ
+    </text>
+  </g>
+</svg>

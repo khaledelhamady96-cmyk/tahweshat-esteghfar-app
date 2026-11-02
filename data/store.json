@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": "admin_master",
+      "name": "مدير النظام الرئيسي",
+      "phone": "01099099127",
+      "password": "141996",
+      "email": "admin@tahwesha.app",
+      "role": "admin",
+      "isVerified": true,
+      "verificationCode": "141996",
+      "deceasedName": "جميع موتى المسلمين",
+      "createdAt": "2026-11-02T12:00:00.000Z"
+    }
+  ],
+  "financials": {
+    "admin_master": {
+      "monthlyIncome": 5000,
+      "dailyExpenses": [],
+      "moneyCircles": [],
+      "deposits": [],
+      "installments": [],
+      "receivables": []
+    }
+  },
+  "vehicles": {},
+  "receivables": {}
+}

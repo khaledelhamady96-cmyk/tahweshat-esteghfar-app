@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تنبيه تحويشة استغفار العائم</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;600;700;800;900&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    body {
+      background: transparent;
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+    .floating-card {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(6, 46, 38, 0.96) 0%, rgba(2, 44, 34, 0.98) 100%);
+      border: 1.5px solid #d97706;
+      border-radius: 18px;
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.25);
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn {
+      from { transform: translateY(30px) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid rgba(217, 119, 6, 0.3);
+      -webkit-app-region: drag; /* Draggable handle */
+    }
+    .badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-mini {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid #f59e0b;
+      object-fit: cover;
+    }
+    .title-area {
+      display: flex;
+      flex-direction: column;
+    }
+    .app-title {
+      font-size: 11px;
+      color: #34d399;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .alert-type {
+      font-size: 13px;
+      color: #fef08a;
+      font-weight: 800;
+    }
+    .close-btn {
+      -webkit-app-region: no-drag;
+      cursor: pointer;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .close-btn:hover {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+      transform: scale(1.05);
+    }
+    .body {
+      flex: 1;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow-y: auto;
+    }
+    .quote-icon {
+      font-size: 24px;
+      color: #f59e0b;
+      opacity: 0.5;
+      margin-bottom: -5px;
+    }
+    .content-text {
+      font-family: 'Amiri', 'Cairo', serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #f3f4f6;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .sub-note {
+      margin-top: 8px;
+      font-size: 11.5px;
+      color: #a7f3d0;
+      text-align: center;
+      background: rgba(6, 95, 70, 0.35);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+    .quran-verses {
+      font-family: 'Amiri', serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #ecfdf5;
+      text-align: justify;
+      max-height: 110px;
+      overflow-y: auto;
+      padding: 4px 8px;
+    }
+    .verse-item {
+      margin-bottom: 6px;
+    }
+    .verse-end {
+      color: #f59e0b;
+      font-weight: bold;
+      margin: 0 4px;
+    }
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.35);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      -webkit-app-region: no-drag;
+    }
+    .action-btn {
+      cursor: pointer;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      border: 1px solid #10b981;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      background: #10b981;
+      transform: translateY(-1px);
+    }
+    .timer-text {
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sound-pulse {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="floating-card" id="alertCard">
+    <!-- Header -->
+    <div class="header">
+      <div class="badge-wrap">
+        <img src="assets/logo.svg" alt="شعار البرنامج" class="logo-mini">
+        <div class="title-area">
+          <span class="app-title">تحويشة استغفار</span>
+          <span class="alert-type" id="alertHeaderTitle">تذكير بذكر الله (نصف ساعة)</span>
+        </div>
+      </div>
+      <!-- Explicit Close Button -->
+      <button class="close-btn" id="closeBtn" title="إغلاق التنبيه">
+        <span>إغلاق</span>
+        <span>✕</span>
+      </button>
+    </div>
+
+    <!-- Body Content -->
+    <div class="body" id="bodyArea">
+      <div class="content-text" id="alertMainContent">
+        جاري تحميل التنبيه...
+      </div>
+      <div class="sub-note" id="alertSubNote" style="display: none;"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="timer-text">
+        <span class="sound-pulse"></span>
+        <span id="countdownText">إغلاق تلقائي خلال 40 ثانية</span>
+      </div>
+      <button class="action-btn" id="openAppBtn">
+        <span>فتح تحويشة استغفار</span>
+        <span>←</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Audio Chime (Gentle Islamic/Notification Tone synthesized with Web Audio API) -->
+  <script>
+    // Play subtle soft chime when notification arrives
+    function playNotificationSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, now); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+        osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.3); // D6
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.85);
+      } catch (e) {
+        console.log("Audio notice:", e);
+      }
+    }
+
+    // Timer countdown
+    let timeLeft = 40;
+    const countdownEl = document.getElementById('countdownText');
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        closeAlert();
+      } else {
+        countdownEl.innerText = `إغلاق تلقائي خلال ${timeLeft} ثانية`;
+      }
+    }, 1000);
+
+    function closeAlert() {
+      clearInterval(timerInterval);
+      if (window.electronAPI && window.electronAPI.closeOverlay) {
+        window.electronAPI.closeOverlay();
+      } else {
+        window.close();
+      }
+    }
+
+    function openMain() {
+      if (window.electronAPI && window.electronAPI.openMainWindow) {
+        window.electronAPI.openMainWindow();
+      }
+      closeAlert();
+    }
+
+    document.getElementById('closeBtn').addEventListener('click', closeAlert);
+    document.getElementById('openAppBtn').addEventListener('click', openMain);
+
+    // Update alert data when sent from Electron main process
+    function setAlertData(data) {
+      if (!data) return;
+      playNotificationSound();
+      timeLeft = 45; // Reset countdown
+      
+      const titleEl = document.getElementById('alertHeaderTitle');
+      const contentEl = document.getElementById('alertMainContent');
+      const subNoteEl = document.getElementById('alertSubNote');
+
+      titleEl.innerText = data.title || "تنبيه جديد";
+
+      if (data.type === 'quran' && Array.isArray(data.verses)) {
+        let html = '<div class="quran-verses">';
+        data.verses.forEach((v, idx) => {
+          html += `<div class="verse-item">${v} <span class="verse-end">﴿${idx + 1}﴾</span></div>`;
+        });
+        html += '</div>';
+        contentEl.innerHTML = html;
+        if (data.fadl) {
+          subNoteEl.innerText = data.fadl;
+          subNoteEl.style.display = 'block';
+        } else {
+          subNoteEl.style.display = 'none';
+        }
+      } else if (data.type === 'duaa') {
+        contentEl.innerHTML = `<div style="font-size: 16px; line-height: 1.8;">${data.content}</div>`;
+        subNoteEl.innerText = `الدعاء بالرحمة والمغفرة لـ: ${data.deceasedName || "موتى المسلمين"}`;
+        subNoteEl.style.display = 'block';
+      } else if (data.type === 'azkar') {
+        contentEl.innerHTML = `<div style="font-size: 18px; line-height: 1.8;">« ${data.content} »</div>`;
+        if (data.fadl) {
+          subNoteEl.innerText = `الفضل: ${data.fadl}`;
+          subNoteEl.style.display = 'block';
+        } else {
+          subNoteEl.style.display = 'none';
+        }
+      } else if (data.type === 'installment_reminder') {
+        contentEl.innerHTML = `
+          <div style="color: #fef08a; font-size: 16px; font-weight: bold; margin-bottom: 6px;">💳 تذكير سداد قسط شهري</div>
+          <div style="font-size: 15px; color: #fff;">${data.message}</div>
+        `;
+        subNoteEl.innerText = `يوم الاستحقاق: ${data.dueDay} من الشهر`;
+        subNoteEl.style.display = 'block';
+      } else if (data.type === 'license_reminder') {
+        contentEl.innerHTML = `
+          <div style="color: #fef08a; font-size: 16px; font-weight: bold; margin-bottom: 6px;">🚗 تنبيه تجديد رخصة</div>
+          <div style="font-size: 15px; color: #fff;">${data.message}</div>
+        `;
+        subNoteEl.innerText = `تاريخ الانتهاء: ${data.expiryDate}`;
+        subNoteEl.style.display = 'block';
+      } else {
+        contentEl.innerText = data.content || data.message || "";
+        if (data.subNote) {
+          subNoteEl.innerText = data.subNote;
+          subNoteEl.style.display = 'block';
+        } else {
+          subNoteEl.style.display = 'none';
+        }
+      }
+    }
+
+    // Listen to IPC event in Electron
+    if (window.electronAPI && window.electronAPI.onAlertData) {
+      window.electronAPI.onAlertData((data) => {
+        setAlertData(data);
+      });
+    }
+
+    // Initial chime
+    setTimeout(playNotificationSound, 400);
+  </script>
+</body>
+</html>

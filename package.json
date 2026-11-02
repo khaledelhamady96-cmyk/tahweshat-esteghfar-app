@@ -1,0 +1,34 @@
+{
+  "name": "tahweshat-esteghfar",
+  "version": "2.0.0",
+  "description": "برنامج تحويشة استغفار - الأذكار والميزانية الذكية وتنبيهات الرخص",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "desktop": "electron electron/main.js",
+    "electron": "electron electron/main.js"
+  },
+  "keywords": [
+    "islamic",
+    "savings",
+    "azkar",
+    "quran",
+    "ai-finance",
+    "desktop-overlay"
+  ],
+  "author": "Tahweshat Esteghfar",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/local-notifications": "^8.3.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "electron": "^45.2.1",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.3.1"
+  }
+}
