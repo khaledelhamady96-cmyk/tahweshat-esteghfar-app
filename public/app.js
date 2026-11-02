@@ -84,7 +84,7 @@ let localAzkarIdx = 0;
 let localQuranIdx = 0;
 let localDuaaIdx = 0;
 
-function handleOfflineApiCall(endpoint, method, body) {
+async function handleOfflineApiCall(endpoint, method, body) {
   // 1. Stats
   if (endpoint === '/api/auth/stats') {
     const users = OfflineEngine.getStorage('users', []);
@@ -118,13 +118,37 @@ function handleOfflineApiCall(endpoint, method, body) {
       else users[aIdx] = { ...users[aIdx], ...adminUser };
       OfflineEngine.setStorage('users', users);
 
+      if (typeof FirebaseSync !== 'undefined') {
+        FirebaseSync.syncUserToCloud(adminUser);
+      }
+
       return { success: true, token: "local_token_admin_master", user: adminUser };
     }
 
-    const users = OfflineEngine.getStorage('users', []);
-    const user = users.find(u => normalizePhone(u.phone) === phone && normalizeArabicDigits(u.password) === password);
+    let users = OfflineEngine.getStorage('users', []);
+    let user = users.find(u => normalizePhone(u.phone) === phone && normalizeArabicDigits(u.password) === password);
+
+    // If user not in local storage, check Firebase Cloud
+    if (!user && typeof FirebaseSync !== 'undefined') {
+      try {
+        const cloudUser = await FirebaseSync.fetchUserFromCloud(phone);
+        if (cloudUser && normalizeArabicDigits(cloudUser.password) === password) {
+          user = cloudUser;
+          users.push(cloudUser);
+          OfflineEngine.setStorage('users', users);
+        }
+      } catch (e) {
+        console.debug("Firebase login lookup notice:", e);
+      }
+    }
+
     if (!user) throw new Error("رقم الموبايل أو كلمة المرور غير صحيحة");
     if (!user.isVerified) throw new Error("الحساب غير مفعل بعد، يرجى تفعيل حسابك أولاً");
+
+    if (typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.syncUserToCloud(user);
+    }
+
     return { success: true, token: "local_token_" + user.id, user };
   }
 
@@ -147,6 +171,12 @@ function handleOfflineApiCall(endpoint, method, body) {
     };
     users.push(newUser);
     OfflineEngine.setStorage('users', users);
+
+    // Sync to Google Firebase Cloud
+    if (typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.syncUserToCloud(newUser);
+    }
+
     return { success: true, message: "تم تسجيل الحساب بنجاح، يُرجى فحص بريدك الإلكتروني للحصول على رمز التفعيل." };
   }
 
@@ -162,6 +192,11 @@ function handleOfflineApiCall(endpoint, method, body) {
     }
     user.isVerified = true;
     OfflineEngine.setStorage('users', users);
+
+    if (typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.syncUserToCloud(user);
+    }
+
     return { success: true, token: "local_token_" + user.id, user };
   }
 
@@ -455,9 +490,24 @@ function handleOfflineApiCall(endpoint, method, body) {
     return { alerts, count: alerts.length };
   }
 
-  // 12. Admin Operations (Offline Engine)
+  // 12. Admin Operations (Offline Engine with Google Firebase Cloud Sync)
   if (endpoint === '/api/admin/overview') {
-    const users = OfflineEngine.getStorage('users', []);
+    let users = OfflineEngine.getStorage('users', []);
+    if (typeof FirebaseSync !== 'undefined') {
+      try {
+        const cloudUsers = await FirebaseSync.fetchAllSubscribersForAdmin();
+        if (cloudUsers && cloudUsers.length > 0) {
+          cloudUsers.forEach(cu => {
+            const idx = users.findIndex(u => normalizePhone(u.phone) === normalizePhone(cu.phone));
+            if (idx === -1) users.push(cu);
+            else users[idx] = { ...users[idx], ...cu };
+          });
+          OfflineEngine.setStorage('users', users);
+        }
+      } catch (e) {
+        console.warn("Firebase subscribers fetch notice:", e);
+      }
+    }
     return { totalSubscribers: users.filter(u => u.role !== 'admin').length, users, broadcasts: [] };
   }
   if (endpoint.startsWith('/api/admin/users/') && endpoint.endsWith('/toggle-verify') && method === 'PUT') {
@@ -469,6 +519,9 @@ function handleOfflineApiCall(endpoint, method, body) {
     if (user.phone === '01099099127') throw new Error("لا يمكن تعديل حساب الإدارة");
     user.isVerified = !user.isVerified;
     OfflineEngine.setStorage('users', users);
+    if (typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.toggleVerificationInCloud(user.phone, user.isVerified);
+    }
     return { success: true, user, isVerified: user.isVerified };
   }
   if (endpoint.startsWith('/api/admin/users/') && endpoint.endsWith('/message') && method === 'POST') {
@@ -487,6 +540,9 @@ function handleOfflineApiCall(endpoint, method, body) {
     };
     user.personalMessages.unshift(pmsg);
     OfflineEngine.setStorage('users', users);
+    if (typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.sendPersonalMessageInCloud(user.phone, pmsg);
+    }
     return { success: true, message: "تم إرسال الرسالة بنجاح", personalMessage: pmsg };
   }
   if (endpoint.startsWith('/api/admin/users/') && method === 'DELETE') {
@@ -496,6 +552,9 @@ function handleOfflineApiCall(endpoint, method, body) {
     if (target && target.phone === '01099099127') throw new Error("لا يمكن حذف حساب الإدارة");
     users = users.filter(u => u.id !== uId);
     OfflineEngine.setStorage('users', users);
+    if (typeof FirebaseSync !== 'undefined' && target) {
+      FirebaseSync.deleteUserInCloud(target.phone);
+    }
     return { success: true };
   }
   if (endpoint.startsWith('/api/admin/users/') && endpoint.endsWith('/financials') && method === 'GET') {
