@@ -8,16 +8,21 @@ echo ======================================================
 echo.
 
 git branch -M main
-git remote set-url origin https://github.com/fawzyelrefaeygamasa-lab/tahweshat-esteghfar.git 2>nul || git remote add origin https://github.com/fawzyelrefaeygamasa-lab/tahweshat-esteghfar.git
+git remote set-url origin https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app.git 2>nul || git remote add origin https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app.git
 
-echo Remote repository:
-echo https://github.com/fawzyelrefaeygamasa-lab/tahweshat-esteghfar.git
+echo Target Repository:
+echo https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app.git
 echo.
-echo Uploading project to GitHub...
-echo If a GitHub browser window appears, click "Authorize git-ecosystem" or Sign in.
+echo Uploading project files...
+echo If GitHub opens a browser login window, click "Authorize git-ecosystem".
 echo.
 
 git push -u origin main
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo Trying force push to overwrite initial template files...
+    git push -u origin main --force
+)
 
 echo.
 if %ERRORLEVEL% EQU 0 (
