@@ -1562,7 +1562,8 @@ function closeInAppFloatingAlert() {
 
 async function handleOtpSubmit(e) {
   e.preventDefault();
-  const code = document.getElementById('otpInput').value.trim();
+  const rawCode = document.getElementById('otpInput').value.trim();
+  const code = normalizeArabicDigits(rawCode);
 
   try {
     const res = await apiCall('/api/auth/verify', 'POST', { phone: pendingVerifyPhone, code });
