@@ -865,14 +865,207 @@
           </form>
         </div>
 
-        <!-- Subscribers Table -->
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+        <!-- Admin Notification Testing Lab (مركز تجربة واختبار التنبيهات التجريبية للإدارة) -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950/60 to-slate-900 border border-indigo-500/40 rounded-3xl p-4 space-y-3 shadow-xl">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
             <h3 class="text-xs font-black text-white flex items-center gap-1.5">
-              <i class="fa-solid fa-users-gear text-brand-400"></i> التحكم الكامل في المشتركين وإرسال الرسائل المخصصة
+              <i class="fa-solid fa-flask-vial text-indigo-400"></i> مركز تجربة واختبار التنبيهات للإدارة (Admin Notification Lab)
             </h3>
-            <span class="text-[10px] text-slate-400 font-bold" id="adminTableSummary"></span>
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-indigo-900/60 text-indigo-300 font-bold border border-indigo-700/40">خاص بالمدير فقط 👑</span>
           </div>
+          <p class="text-[11px] text-slate-300">
+            اضغط على أي زر لتجربة نوع التنبيه فورياً مع الصوت والشعار، أو اختر <strong>تجربة بعد 5 ثوانٍ</strong> واقفل شاشة هاتفك للتأكد من ظهور التنبيه فوق شاشة القفل وإيقاظ الشاشة تلقائياً!
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+            <!-- 1. Azkar Test -->
+            <div class="bg-slate-950/80 border border-emerald-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-950 flex items-center justify-center text-emerald-400 text-sm border border-emerald-700/40">📿</span>
+                <div>
+                  <div class="text-xs font-bold text-white">إشعار الأذكار</div>
+                  <div class="text-[10px] text-emerald-400">دوري كل 30 دقيقة</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('azkar', 0)" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('azkar', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Quran Test -->
+            <div class="bg-slate-950/80 border border-blue-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-blue-950 flex items-center justify-center text-blue-400 text-sm border border-blue-700/40">📖</span>
+                <div>
+                  <div class="text-xs font-bold text-white">إشعار القرآن</div>
+                  <div class="text-[10px] text-blue-400">دوري كل 60 دقيقة</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('quran', 0)" class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('quran', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 3. Duaa Test -->
+            <div class="bg-slate-950/80 border border-amber-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-amber-950 flex items-center justify-center text-amber-400 text-sm border border-amber-700/40">🤲</span>
+                <div>
+                  <div class="text-xs font-bold text-white">إشعار دعاء المتوفي</div>
+                  <div class="text-[10px] text-amber-400">مخصص كل 90 دقيقة</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('duaa', 0)" class="flex-1 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('duaa', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Vehicle Test -->
+            <div class="bg-slate-950/80 border border-yellow-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-yellow-950 flex items-center justify-center text-yellow-400 text-sm border border-yellow-700/40">🚗</span>
+                <div>
+                  <div class="text-xs font-bold text-white">تنبيه رخص السيارات</div>
+                  <div class="text-[10px] text-yellow-400">تجديد وانتهاء الرخصة</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('vehicle', 0)" class="flex-1 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black rounded-lg text-[10px] shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('vehicle', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 5. Financial Installments Test -->
+            <div class="bg-slate-950/80 border border-cyan-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-cyan-950 flex items-center justify-center text-cyan-400 text-sm border border-cyan-700/40">💳</span>
+                <div>
+                  <div class="text-xs font-bold text-white">تنبيه الأقساط الشهرية</div>
+                  <div class="text-[10px] text-cyan-400">موعد استحقاق القسط</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('installment', 0)" class="flex-1 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('installment', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 6. Money Circle Test -->
+            <div class="bg-slate-950/80 border border-teal-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-teal-950 flex items-center justify-center text-teal-400 text-sm border border-teal-700/40">💰</span>
+                <div>
+                  <div class="text-xs font-bold text-white">تنبيه الجمعيات</div>
+                  <div class="text-[10px] text-teal-400">ميعاد السداد والقبض</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('circle', 0)" class="flex-1 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('circle', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 7. Receivables Test -->
+            <div class="bg-slate-950/80 border border-purple-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-purple-950 flex items-center justify-center text-purple-400 text-sm border border-purple-700/40">💵</span>
+                <div>
+                  <div class="text-xs font-bold text-white">تنبيه المستحقات</div>
+                  <div class="text-[10px] text-purple-400">تحصيل الديون الخارجية</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('receivable', 0)" class="flex-1 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('receivable', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+
+            <!-- 8. Broadcast Test -->
+            <div class="bg-slate-950/80 border border-red-800/40 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-red-950 flex items-center justify-center text-red-400 text-sm border border-red-700/40">📢</span>
+                <div>
+                  <div class="text-xs font-bold text-white">تنبيه البث للجميع</div>
+                  <div class="text-[10px] text-red-400">بث عاجل فوق الشاشات</div>
+                </div>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" onclick="testAdminNotification('broadcast', 0)" class="flex-1 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold shadow transition-all">
+                  فوري 🔔
+                </button>
+                <button type="button" onclick="testAdminNotification('broadcast', 5)" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-[10px] font-bold" title="اقفل شاشة الموبايل بعد الضغط لتجربة شاشة القفل">
+                  بعد 5ث ⏱️
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subscribers Table & Excel Export Center -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+            <div>
+              <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-users-gear text-brand-400"></i> إدارة المشتركين وسحب بيانات العملاء
+              </h3>
+              <div class="text-[10px] text-slate-400 font-bold mt-0.5" id="adminTableSummary">جاري تحميل بيانات المشتركين...</div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Excel Export Button -->
+              <button type="button" onclick="exportSubscribersToExcel('excel')" class="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md shadow-emerald-700/30 active:scale-95 transition-all">
+                <i class="fa-solid fa-file-excel text-emerald-200 text-sm"></i>
+                <span>تصدير إكسيل (Excel) 📊</span>
+              </button>
+              <!-- CSV Export Button -->
+              <button type="button" onclick="exportSubscribersToExcel('csv')" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 shadow">
+                <i class="fa-solid fa-file-csv text-blue-300"></i>
+                <span>CSV</span>
+              </button>
+              <!-- Cloud Refresh Button -->
+              <button type="button" onclick="syncCloudSubscribersNow()" class="p-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow" title="تحديث القائمة من السحابة الآن">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-time Search Box -->
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="adminSubscriberSearch" oninput="handleAdminSearchInput(this.value)" placeholder="🔍 ابحث في آلاف العملاء بالاسم، الموبايل، الإيميل، أو اسم المتوفي..." class="w-full bg-slate-950 border border-slate-800 rounded-2xl pr-9 pl-4 py-2.5 text-xs text-white placeholder:text-slate-500 focus:border-brand-500 focus:outline-none transition-all">
+          </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-right text-xs">
               <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
@@ -886,6 +1079,19 @@
               </thead>
               <tbody id="adminUsersTableBody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
             </table>
+          </div>
+
+          <!-- Table Pagination Controls -->
+          <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 text-xs">
+            <button type="button" id="adminPrevPageBtn" onclick="changeAdminPage(-1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 rounded-xl font-bold flex items-center gap-1">
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              <span>السابق</span>
+            </button>
+            <span id="adminPaginationInfo" class="text-slate-400 font-mono text-[11px]">صفحة 1 من 1</span>
+            <button type="button" id="adminNextPageBtn" onclick="changeAdminPage(1)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 rounded-xl font-bold flex items-center gap-1">
+              <span>التالي</span>
+              <i class="fa-solid fa-chevron-left text-[10px]"></i>
+            </button>
           </div>
         </div>
 

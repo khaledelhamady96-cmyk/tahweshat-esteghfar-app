@@ -12,6 +12,8 @@ public class TahweshaReminderManager {
     public static final String TYPE_AZKAR = "type_azkar";
     public static final String TYPE_QURAN = "type_quran";
     public static final String TYPE_DUAA = "type_duaa";
+    public static final String TYPE_VEHICLE = "type_vehicle";
+    public static final String TYPE_FINANCIAL = "type_financial";
 
     private static final String[] AZKAR_ITEMS = {
         "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ (استغفار يمحو الذنوب ويجلب الرزق)",
@@ -31,12 +33,19 @@ public class TahweshaReminderManager {
         "📖 سورة الإخلاص: « قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ »"
     };
 
+    private static final String[] DUAA_ITEMS = {
+        "اللَّهُمَّ اغْفِرْ لِمَوْتَانَا وَمَوْتَى الْمُسْلِمِينَ، وَارْحَمْهُمْ وَعَافِهِمْ وَاعْفُ عَنْهُمْ، وَأَكْرِمْ نُزُلَهُمْ وَوَسِّعْ مَدْخَلَهُمْ.",
+        "اللَّهُمَّ اجْعَلْ قُبُورَهُمْ رَوْضَةً مِنْ رِيَاضِ الْجَنَّةِ، وَلَا تَجْعَلْهَا حُفْرَةً مِنْ حُفَرِ النَّارِ.",
+        "اللَّهُمَّ بَرِّدْ عَلَى قُبُورِهِمْ وَأَنْزِلْ عَلَيْهِمْ نُوراً وَفَرَحاً وَسُرُوراً إِلَى يَوْمِ يُبْعَثُونَ."
+    };
+
     private static int azkarIndex = 0;
     private static int quranIndex = 0;
+    private static int duaaIndex = 0;
 
     public static void scheduleAllAlarms(Context context) {
-        // 1. Quick 20-second test alarm (Allows user to lock screen immediately and verify Heads-Up!)
-        scheduleSingleAlarm(context, TYPE_TEST, 20 * 1000, 1001,
+        // 1. Quick 15-second test reminder so user can lock screen and see it
+        scheduleSingleAlarm(context, TYPE_TEST, 15 * 1000, 1001,
             "📿 ذكر واستغفار • تحويشة استغفار",
             "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ");
 
@@ -48,6 +57,12 @@ public class TahweshaReminderManager {
 
         // 4. Schedule Duaa (90 minutes)
         scheduleNextForType(context, TYPE_DUAA);
+
+        // 5. Schedule Vehicle alert (every 3 hours)
+        scheduleNextForType(context, TYPE_VEHICLE);
+
+        // 6. Schedule Financial installment reminder (every 4 hours)
+        scheduleNextForType(context, TYPE_FINANCIAL);
     }
 
     public static void scheduleNextForType(Context context, String type) {
@@ -71,8 +86,19 @@ public class TahweshaReminderManager {
         } else if (TYPE_DUAA.equals(type)) {
             delayMillis = 90 * 60 * 1000L; // 90 minutes
             id = 2003;
-            title = "🤲 دعاء للمتوفي • تحويشة استغفار";
-            body = "اللَّهُمَّ اغْفِرْ لِمَوْتَانَا وَمَوْتَى الْمُسْلِمِينَ، وَارْحَمْهُمْ وَعَافِهِمْ وَاعْفُ عَنْهُمْ، وَأَكْرِمْ نُزُلَهُمْ وَوَسِّعْ مَدْخَلَهُمْ.";
+            title = "🤲 دعاء للمتوفي • تحويشة استغفar";
+            body = DUAA_ITEMS[Math.abs(duaaIndex % DUAA_ITEMS.length)];
+            duaaIndex++;
+        } else if (TYPE_VEHICLE.equals(type)) {
+            delayMillis = 3 * 60 * 60 * 1000L; // 3 hours
+            id = 2004;
+            title = "🚗 تنبيه رخص المركبات والسيارات";
+            body = "تذكير: راجع تواريخ انتهاء رخص القيادة وتسيير المركبات لتفادي الغرامات وسحب اللوحات.";
+        } else if (TYPE_FINANCIAL.equals(type)) {
+            delayMillis = 4 * 60 * 60 * 1000L; // 4 hours
+            id = 2005;
+            title = "💳 تنبيه الأقساط والمستحقات المالية";
+            body = "تذكير: لديك مواعيد استحقاق أقساط وجمعيات ومستحقات مسجلة في خطتك المالية.";
         } else {
             return;
         }
@@ -80,7 +106,7 @@ public class TahweshaReminderManager {
         scheduleSingleAlarm(context, type, delayMillis, id, title, body);
     }
 
-    private static void scheduleSingleAlarm(Context context, String type, long delayMillis, int id, String title, String body) {
+    public static void scheduleSingleAlarm(Context context, String type, long delayMillis, int id, String title, String body) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
 

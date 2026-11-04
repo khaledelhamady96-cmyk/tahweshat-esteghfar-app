@@ -131,8 +131,34 @@ const FirebaseSync = {
       const list = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (data && data.phone) list.push(data);
+        if (data && (data.phone || data.name)) {
+          list.push({ ...data, id: data.id || doc.id });
+        }
       });
+
+      // Also fetch financials collection to attach financial metrics to each user for Excel & overview
+      const finMap = {};
+      try {
+        const finSnap = await firebaseDb.collection('financials').get();
+        finSnap.forEach(fDoc => {
+          finMap[fDoc.id] = fDoc.data();
+        });
+      } catch (finErr) {
+        console.debug("[Firebase] Financials bulk fetch notice:", finErr.message);
+      }
+
+      // Merge financials into users
+      list.forEach(u => {
+        const cleanPhone = (u.phone || '').replace(/[\s\-\(\)\.]/g, '');
+        const fin = finMap[cleanPhone] || finMap[u.id] || {};
+        u.financials = fin;
+        u.monthlyIncome = fin.monthlyIncome || 0;
+        u.totalExpenses = Array.isArray(fin.dailyExpenses) ? fin.dailyExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) : 0;
+        u.installmentsCount = Array.isArray(fin.installments) ? fin.installments.length : 0;
+        u.circlesCount = Array.isArray(fin.moneyCircles) ? fin.moneyCircles.length : 0;
+        u.receivablesCount = Array.isArray(fin.receivables) ? fin.receivables.length : 0;
+      });
+
       return { success: true, users: list };
     } catch (e) {
       lastCloudError = e.message;

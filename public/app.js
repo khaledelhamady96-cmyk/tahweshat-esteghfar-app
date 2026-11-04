@@ -136,7 +136,8 @@ async function handleOfflineApiCall(endpoint, method, body) {
         if (cloudUser && normalizeArabicDigits(cloudUser.password) === password) {
           user = cloudUser;
           users.push(cloudUser);
-          OfflineEngine.setStorage('users', users);
+          // Prevent QuotaExceededError in mobile WebViews by keeping large user sets in memory
+          // OfflineEngine.setStorage('users', users);
         }
       } catch (e) {
         console.debug("Firebase login lookup notice:", e);
@@ -519,7 +520,8 @@ async function handleOfflineApiCall(endpoint, method, body) {
             if (idx === -1) users.push(cu);
             else users[idx] = { ...users[idx], ...cu };
           });
-          OfflineEngine.setStorage('users', users);
+          // Prevent QuotaExceededError in mobile WebViews by keeping large user sets in memory
+          // OfflineEngine.setStorage('users', users);
         }
       } catch (e) {
         console.warn("Firebase subscribers fetch notice:", e);
@@ -1319,7 +1321,9 @@ function testFloatingAlert(type) {
           title: alertPayload.title || "تنبيه عائم • تحويشة استغفار",
           body: alertPayload.content || alertPayload.message || "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
           channelId: 'tahwesha_heads_up_v4',
-          schedule: { at: new Date(Date.now() + 3000) },
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#10B981',
+          schedule: { at: new Date(Date.now() + 3000), allowWhileIdle: true },
           sound: 'notification.wav'
         }]
       });
@@ -2212,6 +2216,138 @@ function saveCloudServerUrl() {
   }
 }
 
+// ---------------- ADMIN PANEL PAGINATION, SEARCH, EXCEL & LAB ---------------- //
+window.allAdminSubscribersCache = [];
+window.adminCurrentPage = 1;
+window.adminPageSize = 25;
+window.adminSearchFilter = '';
+
+async function syncCloudSubscribersNow() {
+  const summaryEl = document.getElementById('adminTableSummary');
+  if (summaryEl) summaryEl.innerText = "جاري الاتصال بسحابة جوجل وجلب جميع المشتركين...";
+  await loadAdminOverview();
+  alert("تم تحديث وجلب بيانات جميع المشتركين من سحابة جوجل بنجاح!");
+}
+
+function handleAdminSearchInput(val) {
+  window.adminSearchFilter = (val || '').trim().toLowerCase();
+  window.adminCurrentPage = 1;
+  renderAdminSubscribersTable();
+}
+
+function changeAdminPage(delta) {
+  window.adminCurrentPage += delta;
+  renderAdminSubscribersTable();
+}
+
+function renderAdminSubscribersTable() {
+  const tbody = document.getElementById('adminUsersTableBody');
+  if (!tbody) return;
+
+  const rawUsers = window.allAdminSubscribersCache || [];
+  const q = window.adminSearchFilter;
+
+  // Filter users based on search
+  const filtered = q ? rawUsers.filter(u => {
+    const nameMatch = (u.name || '').toLowerCase().includes(q);
+    const phoneMatch = (u.phone || '').includes(q);
+    const emailMatch = (u.email || '').toLowerCase().includes(q);
+    const decMatch = (u.deceasedName || '').toLowerCase().includes(q);
+    return nameMatch || phoneMatch || emailMatch || decMatch;
+  }) : rawUsers;
+
+  const totalUsers = filtered.length;
+  const totalPages = Math.ceil(totalUsers / window.adminPageSize) || 1;
+  if (window.adminCurrentPage < 1) window.adminCurrentPage = 1;
+  if (window.adminCurrentPage > totalPages) window.adminCurrentPage = totalPages;
+
+  const page = window.adminCurrentPage;
+  const startIdx = (page - 1) * window.adminPageSize;
+  const pageUsers = filtered.slice(startIdx, startIdx + window.adminPageSize);
+
+  // Update summary badges
+  const verifiedCount = rawUsers.filter(u => u.isVerified).length;
+  const pendingCount = rawUsers.length - verifiedCount;
+  setElText('adminTableSummary', `إجمالي المشتركين بالسحابة: ${rawUsers.length} | مفعل: ${verifiedCount} | غير مفعل: ${pendingCount}`);
+  setElText('adminTotalUsersCount', (rawUsers.filter(u => u.role !== 'admin').length || 0).toLocaleString());
+
+  // Update pagination UI
+  setElText('adminPaginationInfo', `صفحة ${page} من ${totalPages} (معروض ${pageUsers.length} من أصل ${totalUsers})`);
+  const prevBtn = document.getElementById('adminPrevPageBtn');
+  const nextBtn = document.getElementById('adminNextPageBtn');
+  if (prevBtn) prevBtn.disabled = (page <= 1);
+  if (nextBtn) nextBtn.disabled = (page >= totalPages);
+
+  if (pageUsers.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="p-6 text-center text-slate-400">
+          <i class="fa-solid fa-user-slash text-2xl text-slate-600 mb-2 block"></i>
+          لا توجد بيانات مشتركون مطابقة لبحثك في السحابة.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = pageUsers.map(u => {
+    const isMasterAdmin = (u.phone === '01099099127');
+    const safeName = (u.name || 'مشترك').replace(/'/g, "\\'");
+    const dateFormatted = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-EG') : '--';
+
+    return `
+    <tr class="hover:bg-slate-900/60 transition-colors">
+      <td class="p-3 font-bold text-white">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span>${u.name || 'مشترك'}</span>
+          ${isMasterAdmin ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-black border border-amber-500/40">مدير النظام 👑</span>' : ''}
+        </div>
+        <div class="text-[10px] text-slate-400 font-normal mt-0.5">${dateFormatted}</div>
+      </td>
+      <td class="p-3">
+        <div class="font-mono text-slate-300 text-xs font-bold" dir="ltr">${u.phone || '--'}</div>
+        <div class="text-[10px] text-slate-400 font-mono">${u.email || '--'}</div>
+      </td>
+      <td class="p-3 text-gold-300 text-xs font-medium">${u.deceasedName || '--'}</td>
+      <td class="p-3">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          ${u.isVerified 
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 font-bold border border-emerald-800">مفعل ✓</span>' 
+            : '<span class="px-2 py-0.5 rounded-full text-[10px] bg-red-950 text-red-300 font-bold border border-red-800">غير مفعل</span>'
+          }
+          ${!isMasterAdmin ? `
+            <button type="button" onclick="adminToggleVerify('${u.id}')" class="px-2 py-0.5 ${u.isVerified ? 'bg-amber-950/40 text-amber-300 hover:bg-amber-900 border border-amber-800/40' : 'bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900 border border-emerald-800/40'} rounded-lg text-[9px] font-bold transition-all" title="تغيير حالة التفعيل">
+              ${u.isVerified ? 'إيقاف' : 'تفعيل'}
+            </button>
+          ` : ''}
+        </div>
+      </td>
+      <td class="p-3 text-center">
+        <div class="flex items-center justify-center gap-1 flex-wrap">
+          <button type="button" onclick="openAdminSendMessageModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-brand-950/60 hover:bg-brand-900 text-brand-300 border border-brand-800/50 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="إرسال رسالة مخصصة تظهر على شاشة المشترك">
+            <i class="fa-solid fa-paper-plane text-[9px]"></i>
+            <span>رسالة خاصة</span>
+          </button>
+          <button type="button" onclick="openAdminResetPassModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/40 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="إعادة تعيين كلمة المرور">
+            <i class="fa-solid fa-key text-[9px]"></i>
+            <span>الباسورد</span>
+          </button>
+          <button type="button" onclick="openAdminUserFinModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/40 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="عرض الملخص المالي">
+            <i class="fa-solid fa-chart-pie text-[9px]"></i>
+            <span>كشف مالي</span>
+          </button>
+          ${!isMasterAdmin ? `
+            <button type="button" onclick="adminDeleteUser('${u.id}', '${safeName}')" class="p-1.5 bg-slate-950 hover:bg-red-950 text-slate-500 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg text-[10px] transition-colors" title="حذف المشترك نهائياً">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>
+    `;
+  }).join('');
+}
+
 async function loadAdminOverview() {
   try {
     const input = document.getElementById('cloudServerUrlInput');
@@ -2237,73 +2373,313 @@ async function loadAdminOverview() {
       });
     }
 
-    const data = await apiCall('/api/admin/overview');
-    setElText('adminTotalUsersCount', (data.totalSubscribers || 0).toLocaleString());
-    setElText('adminTableSummary', `إجمالي المشتركين: ${(data.users || []).length}`);
+    // 1. Fetch from Firestore Cloud directly to get ALL subscribers
+    let cloudList = [];
+    if (typeof FirebaseSync !== 'undefined' && FirebaseSync.fetchAllSubscribersForAdmin) {
+      try {
+        const cloudRes = await FirebaseSync.fetchAllSubscribersForAdmin();
+        if (cloudRes && cloudRes.success && Array.isArray(cloudRes.users)) {
+          cloudList = cloudRes.users;
+        }
+      } catch (fbErr) {
+        console.warn("Direct Firebase subscribers fetch notice:", fbErr);
+      }
+    }
 
-    const tbody = document.getElementById('adminUsersTableBody');
-    if (!tbody) return;
+    // 2. Also check local/backend overview
+    let apiList = [];
+    try {
+      const data = await apiCall('/api/admin/overview');
+      if (data && Array.isArray(data.users)) {
+        apiList = data.users;
+      }
+    } catch (apiErr) {
+      console.debug("Backend overview notice:", apiErr.message);
+    }
 
-    tbody.innerHTML = (data.users || []).map(u => {
-      const isMasterAdmin = (u.phone === '01099099127');
-      const safeName = (u.name || 'مشترك').replace(/'/g, "\\'");
+    // 3. Merge seamlessly by phone without losing any users
+    const userMap = {};
+    [...apiList, ...cloudList].forEach(u => {
+      if (u && u.phone) {
+        const key = normalizePhone(u.phone);
+        userMap[key] = { ...(userMap[key] || {}), ...u };
+      }
+    });
 
-      return `
-      <tr class="hover:bg-slate-900/50 transition-colors">
-        <td class="p-3 font-bold text-white">
-          <div class="flex items-center gap-1.5">
-            <span>${u.name}</span>
-            ${isMasterAdmin ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-black border border-amber-500/40">مدير النظام 👑</span>' : ''}
-          </div>
-          <div class="text-[10px] text-slate-400 font-normal mt-0.5">${new Date(u.createdAt).toLocaleDateString('ar-EG')}</div>
-        </td>
-        <td class="p-3">
-          <div class="font-mono text-slate-300 text-xs" dir="ltr">${u.phone}</div>
-          <div class="text-[10px] text-slate-400 font-mono">${u.email || '--'}</div>
-        </td>
-        <td class="p-3 text-gold-300 text-xs">${u.deceasedName || '--'}</td>
-        <td class="p-3">
-          <div class="flex items-center gap-1.5">
-            ${u.isVerified 
-              ? '<span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 font-bold border border-emerald-800">مفعل ✓</span>' 
-              : '<span class="px-2 py-0.5 rounded-full text-[10px] bg-red-950 text-red-300 font-bold border border-red-800">غير مفعل</span>'
-            }
-            ${!isMasterAdmin ? `
-              <button onclick="adminToggleVerify('${u.id}')" class="px-2 py-0.5 ${u.isVerified ? 'bg-amber-950/40 text-amber-300 hover:bg-amber-900 border border-amber-800/40' : 'bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900 border border-emerald-800/40'} rounded-lg text-[9px] font-bold" title="تغيير حالة التفعيل">
-                ${u.isVerified ? 'إيقاف' : 'تفعيل'}
-              </button>
-            ` : ''}
-          </div>
-        </td>
-        <td class="p-3 text-center">
-          <div class="flex items-center justify-center gap-1 flex-wrap">
-            <button onclick="openAdminSendMessageModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-brand-950/60 hover:bg-brand-900 text-brand-300 border border-brand-800/50 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="إرسال رسالة مخصصة تظهر على شاشة المشترك">
-              <i class="fa-solid fa-paper-plane text-[9px]"></i>
-              <span>رسالة خاصة</span>
-            </button>
-            <button onclick="openAdminResetPassModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/40 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="إعادة تعيين كلمة المرور">
-              <i class="fa-solid fa-key text-[9px]"></i>
-              <span>الباسورد</span>
-            </button>
-            <button onclick="openAdminUserFinModal('${u.id}', '${safeName}')" class="px-2 py-1 bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800/40 rounded-lg text-[10px] font-bold shadow-sm flex items-center gap-1" title="عرض الملخص المالي">
-              <i class="fa-solid fa-chart-pie text-[9px]"></i>
-              <span>كشف مالي</span>
-            </button>
-            ${!isMasterAdmin ? `
-              <button onclick="adminDeleteUser('${u.id}', '${safeName}')" class="p-1.5 bg-slate-950 hover:bg-red-950 text-slate-500 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg text-[10px] transition-colors" title="حذف المشترك نهائياً">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            ` : ''}
-          </div>
-        </td>
-      </tr>
-      `;
-    }).join('');
+    window.allAdminSubscribersCache = Object.values(userMap);
+    renderAdminSubscribersTable();
 
   } catch (err) {
     console.error("Admin load error:", err);
   }
 }
+
+// ---------------- EXPORT SUBSCRIBERS TO EXCEL & CSV ---------------- //
+window.exportSubscribersToExcel = function(format = 'excel') {
+  const users = window.allAdminSubscribersCache || [];
+  if (!users || users.length === 0) {
+    alert("لا توجد بيانات مشتركين متاحة للتصدير حالياً. يرجى الضغط على زر تحديث السحابة أولاً.");
+    return;
+  }
+
+  const dateStr = new Date().toISOString().split('T')[0];
+
+  if (format === 'csv') {
+    // Generate UTF-8 BOM CSV
+    const headers = ["م", "الاسم الكامل", "رقم الهاتف", "البريد الإلكتروني", "اسم المتوفي للدعاء", "تاريخ الانضمام", "حالة التفعيل", "كود التفعيل", "الصلاحية", "الدخل الشهري", "المصروفات", "عدد الأقساط", "عدد الجمعيات", "المستحقات"];
+    const rows = users.map((u, i) => {
+      const isMaster = (u.phone === '01099099127');
+      const fin = u.financials || {};
+      const inc = fin.monthlyIncome || u.monthlyIncome || 0;
+      const exp = u.totalExpenses || 0;
+      const instCount = u.installmentsCount || 0;
+      const circCount = u.circlesCount || 0;
+      const recCount = u.receivablesCount || 0;
+
+      return [
+        i + 1,
+        `"${(u.name || '').replace(/"/g, '""')}"`,
+        `"\t${u.phone || ''}"`, // \t prevents Excel from truncating leading zero in phone numbers
+        `"${(u.email || '').replace(/"/g, '""')}"`,
+        `"${(u.deceasedName || '').replace(/"/g, '""')}"`,
+        `"${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-EG') : '--'}"`,
+        `"${u.isVerified ? 'مفعل' : 'غير مفعل'}"`,
+        `"${u.verificationCode || '--'}"`,
+        `"${isMaster ? 'مدير النظام الرئيسي' : (u.role === 'admin' ? 'مدير' : 'مشترك')}"`,
+        inc,
+        exp,
+        instCount,
+        circCount,
+        recCount
+      ].join(',');
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `tahweshat_subscribers_${dateStr}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert(`✅ تم تصدير بيانات ${users.length} مشترك كملف CSV بنجاح!`);
+  } else {
+    // Generate Styled HTML Excel Workbook (.xls)
+    const tableRows = users.map((u, i) => {
+      const isMaster = (u.phone === '01099099127');
+      const fin = u.financials || {};
+      const inc = fin.monthlyIncome || u.monthlyIncome || 0;
+      const exp = u.totalExpenses || 0;
+      const instCount = u.installmentsCount || 0;
+      const circCount = u.circlesCount || 0;
+      const recCount = u.receivablesCount || 0;
+      const bg = (i % 2 === 0) ? '#ffffff' : '#f8fafc';
+
+      return `
+        <tr style="background-color: ${bg};">
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${i + 1}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; font-weight: bold;">${u.name || '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; direction: ltr; text-align: center; mso-number-format:'\\@';">${u.phone || '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px;">${u.email || '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; color: #b45309;">${u.deceasedName || '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-EG') : '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; color: ${u.isVerified ? '#15803d' : '#b91c1c'}; font-weight: bold;">
+            ${u.isVerified ? 'مفعل ✓' : 'غير مفعل ✗'}
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center; font-family: monospace;">${u.verificationCode || '--'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${isMaster ? 'مدير النظام 👑' : 'مشترك'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${Number(inc).toLocaleString()} ج.م</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${Number(exp).toLocaleString()} ج.م</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${instCount}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${circCount}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">${recCount}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const excelHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>المشتركين</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayRightToLeft/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+      </head>
+      <body dir="rtl" style="font-family: Arial, sans-serif;">
+        <h2 style="color: #065f46; text-align: center; padding: 10px;">تقرير المشتركين والحسابات - برنامج تحويشة استغفار (${dateStr})</h2>
+        <table style="border-collapse: collapse; width: 100%; border: 1px solid #cbd5e1;" dir="rtl">
+          <thead>
+            <tr style="background-color: #047857; color: #ffffff; font-weight: bold; text-align: center;">
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">م</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">الاسم الكامل</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">رقم الهاتف</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">البريد الإلكتروني</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">اسم المتوفي للدعاء</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">تاريخ التسجيل</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">حالة التفعيل</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">كود التفعيل</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">الصلاحية</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">الدخل الشهري</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">المصروفات</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">الأقساط</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">الجمعيات</th>
+              <th style="border: 1px solid #cbd5e1; padding: 10px;">المستحقات</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `tahweshat_subscribers_${dateStr}.xls`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert(`✅ تم تصدير بيانات ${users.length} مشترك وتفاصيل الحسابات كملف إكسيل بنجاح!`);
+  }
+};
+
+// ---------------- ADMIN NOTIFICATION TEST LAB ---------------- //
+window.testAdminNotification = async function(type, delaySeconds = 0) {
+  let title = "";
+  let body = "";
+  let sound = "notification.wav";
+  let iconColor = "#10B981";
+
+  switch (type) {
+    case 'azkar':
+      title = "📿 ذكر واستغفار • تحويشة استغفار";
+      body = "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ (من لزم الاستغفار جعل الله له من كل ضيق مخرجاً)";
+      iconColor = "#10B981";
+      break;
+    case 'quran':
+      title = "📖 آيات بينات من الذكر الحكيم";
+      body = "« فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا » (سورة الشرح)";
+      iconColor = "#3B82F6";
+      break;
+    case 'duaa':
+      const user = JSON.parse(localStorage.getItem('tahwesha_user') || '{}');
+      const target = user.deceasedName || "جميع موتى المسلمين";
+      title = `🤲 دعاء للمتوفي (${target})`;
+      body = `اللَّهُمَّ اغْفِرْ لِـ ${target} وَارْحَمْهُ وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ وَوَسِّعْ مَدْخَلَهُ.`;
+      iconColor = "#F59E0B";
+      break;
+    case 'vehicle':
+      title = "🚗 تنبيه رخصة السيارة • ب ك د 149";
+      body = "⚠️ رخصة السيارة قاربت على الانتهاء خلال 15 يوماً! يرجى تجهيز الفحص والتجديد لتفادي الغرامات وسحب اللوحات.";
+      iconColor = "#EAB308";
+      break;
+    case 'installment':
+      title = "💳 موعد سداد قسط: قسط البنك الأهلي";
+      body = "تذكير: موعد سداد قسط البنك الأهلي بقيمة 2,500 ج.م مستحق يوم 5 من هذا الشهر.";
+      iconColor = "#06B6D4";
+      break;
+    case 'circle':
+      title = "💰 تذكير سداد الجمعية: جمعية الخير الكبرى";
+      body = "ميعاد سداد قسط جمعية الخير الكبرى بقيمة 3,000 ج.م، وقبضك بشهر رمضان المبارك.";
+      iconColor = "#14B8A6";
+      break;
+    case 'receivable':
+      title = "💵 تذكير مستحقات: أحمد مصطفى";
+      body = "ميعاد استرداد مستحقات مالية بقيمة 5,000 ج.م مسجلة بتاريخ اليوم.";
+      iconColor = "#8B5CF6";
+      break;
+    case 'broadcast':
+      title = "📢 بيان عاجل من إدارة تحويشة استغفار";
+      body = "تم تحديث النظام بالكامل وإضافة مركز التنبيهات وسحب بيانات العملاء وتصدير الإكسيل بنجاح.";
+      iconColor = "#EF4444";
+      break;
+    default:
+      title = "🔔 تنبيه تجريبي • تحويشة استغفار";
+      body = "تنبيه تجريبي منبثق للتأكد من عمل الإشعارات العائمة والصوت.";
+  }
+
+  if (delaySeconds <= 0) {
+    // Instant floating alert
+    triggerFloatingAlertEverywhere({
+      type: "admin_test",
+      title: title,
+      content: body,
+      subNote: "تنبيه تجريبي فوري للإدارة"
+    });
+
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+      try {
+        await window.Capacitor.Plugins.LocalNotifications.schedule({
+          notifications: [{
+            id: Math.floor(Math.random() * 8000) + 1000,
+            title: title,
+            body: body,
+            channelId: 'tahwesha_heads_up_v4',
+            smallIcon: 'ic_stat_tahwesha',
+            iconColor: iconColor,
+            sound: sound,
+            schedule: { at: new Date(Date.now() + 500) }
+          }]
+        });
+      } catch (e) {
+        console.warn("Capacitor instant notification error:", e);
+      }
+    }
+  } else {
+    // Scheduled test for testing lock screen
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+      try {
+        await window.Capacitor.Plugins.LocalNotifications.schedule({
+          notifications: [{
+            id: Math.floor(Math.random() * 8000) + 1000,
+            title: title,
+            body: body,
+            channelId: 'tahwesha_heads_up_v4',
+            smallIcon: 'ic_stat_tahwesha',
+            iconColor: iconColor,
+            sound: sound,
+            schedule: { at: new Date(Date.now() + delaySeconds * 1000), allowWhileIdle: true }
+          }]
+        });
+      } catch (e) {
+        console.warn("Capacitor scheduled notification error:", e);
+      }
+    }
+
+    // Custom countdown visual alert
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-indigo-900 border-2 border-indigo-400 text-white px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-bold text-center flex flex-col items-center gap-1 animate-bounce';
+    toast.innerHTML = `
+      <div class="text-sm">⏱️ تم ضبط التنبيه بعد ${delaySeconds} ثوانٍ!</div>
+      <div class="text-[11px] text-indigo-200">اقفل شاشة هاتفك الآن لتشاهد التنبيه ينبثق فوق شاشة القفل مباشرة 🔔</div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 4500);
+
+    // Also trigger in-browser alert after delay for desktop
+    setTimeout(() => {
+      triggerFloatingAlertEverywhere({
+        type: "admin_test",
+        title: title,
+        content: body,
+        subNote: "تنبيه تجريبي بعد 5 ثوانٍ"
+      });
+    }, delaySeconds * 1000);
+  }
+};
 
 // ---------------- ADMIN SUBSCRIBER ACTIONS ---------------- //
 
