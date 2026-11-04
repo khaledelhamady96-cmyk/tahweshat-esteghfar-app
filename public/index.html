@@ -777,6 +777,29 @@
           <h2 class="text-base font-black text-white">متابعة العملاء والرسائل العامة</h2>
         </div>
 
+        <!-- Google Firebase Cloud Sync Card -->
+        <div class="bg-gradient-to-r from-slate-900 to-brand-950/60 border border-brand-500/40 rounded-3xl p-4 space-y-3 shadow-lg">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-fire text-amber-500"></i> سحابة جوجل فايربيز المركزية (Firestore)
+            </h3>
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold border border-slate-700" id="firebaseStatusBadge">جاري الفحص...</span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            تتيح لك سحابة جوجل رؤية جميع المشتركين الذين قاموا بتثبيت التطبيق على هواتفهم أينما كانوا، والتحكم فيهم أونلاين.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2 pt-1">
+            <button type="button" onclick="syncCloudSubscribersNow()" class="flex-1 py-2.5 px-3 bg-gradient-to-r from-amber-600 to-brand-600 hover:from-amber-500 hover:to-brand-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all">
+              <i class="fa-solid fa-rotate text-xs"></i>
+              <span>مزامنة وجلب المشتركين من سحابة جوجل الآن 🔄</span>
+            </button>
+            <button type="button" onclick="checkForAppUpdates(false)" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-cloud-arrow-down text-brand-400"></i>
+              <span>فحص وجود تحديثات</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Cloud Server Config -->
         <div class="bg-slate-900 border border-brand-800/60 rounded-3xl p-4 space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -1362,6 +1385,33 @@
           <button type="submit" class="px-4 py-1.5 bg-brand-600 text-white font-bold rounded-xl">حفظ والاتصال</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- App Auto-Update Modal -->
+  <div id="appUpdateModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="bg-slate-900 border border-brand-500/60 rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-4 text-center">
+      <div class="w-16 h-16 mx-auto rounded-full bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-400 text-2xl shadow-lg shadow-brand-500/30 animate-pulse">
+        <i class="fa-solid fa-cloud-arrow-down"></i>
+      </div>
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-brand-900 text-brand-300 text-[10px] font-bold">تحديث جديد متاح</span>
+        <h3 class="text-base font-black text-white mt-1.5" id="updateModalTitle">يتوفر إصدار جديد من تحويشة استغفار</h3>
+        <p class="text-xs text-brand-300 font-mono mt-0.5" id="updateModalVersion">الإصدار v2.1.0</p>
+      </div>
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 text-right space-y-1">
+        <span class="text-[11px] font-bold text-slate-300 block">ما الجديد في هذا التحديث:</span>
+        <p class="text-xs text-slate-400 leading-relaxed" id="updateModalNotes">تحسينات في الأداء والتنبيهات وحفظ البيانات.</p>
+      </div>
+      <div class="space-y-2 pt-1">
+        <a id="updateModalDownloadBtn" href="#" target="_blank" class="w-full py-3 bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 block">
+          <i class="fa-solid fa-download"></i>
+          <span>تحميل وتثبيت التحديث الآن 📥</span>
+        </a>
+        <button id="updateModalDismissBtn" type="button" onclick="closeUpdateModal()" class="w-full py-2 text-slate-400 hover:text-white text-xs font-bold">
+          تذكيري لاحقاً
+        </button>
+      </div>
     </div>
   </div>
 

@@ -4,6 +4,7 @@
  */
 
 // Global State
+const CURRENT_APP_VERSION = "2.0.0";
 let currentUser = null;
 let currentFinancials = null;
 let currentVehicles = [];
@@ -202,8 +203,23 @@ async function handleOfflineApiCall(endpoint, method, body) {
 
   // 5. Auth Me
   if (endpoint === '/api/auth/me') {
+    let savedUser = null;
+    try {
+      savedUser = JSON.parse(localStorage.getItem('tahwesha_user') || 'null');
+    } catch (e) {}
+
     const users = OfflineEngine.getStorage('users', []);
-    const user = users.find(u => currentUser && (u.id === currentUser.id || u.phone === currentUser.phone));
+    let user = null;
+    if (savedUser) {
+      user = users.find(u => (savedUser.id && u.id === savedUser.id) || (savedUser.phone && normalizePhone(u.phone) === normalizePhone(savedUser.phone)));
+      if (!user) {
+        user = savedUser;
+        users.push(user);
+        OfflineEngine.setStorage('users', users);
+      }
+    } else if (currentUser) {
+      user = users.find(u => (currentUser.id && u.id === currentUser.id) || (currentUser.phone && normalizePhone(u.phone) === normalizePhone(currentUser.phone)));
+    }
     if (!user) throw new Error("يرجى تسجيل الدخول أولاً");
     return { user };
   }
@@ -586,15 +602,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initMobileNotifications();
   await loadSubscriberStats();
 
+  // 1. Persistent User Session (Never log out when closing or exiting app)
+  const savedUserStr = localStorage.getItem('tahwesha_user');
   const token = localStorage.getItem('tahwesha_token');
-  if (token) {
+  if (savedUserStr && token) {
     try {
-      const me = await apiCall('/api/auth/me');
-      setCurrentUser(me.user);
+      const savedUser = JSON.parse(savedUserStr);
+      setCurrentUser(savedUser);
       await refreshAllData();
+
+      // Background silent session sync
+      apiCall('/api/auth/me').then(me => {
+        if (me && me.user) {
+          setCurrentUser(me.user);
+        }
+      }).catch(err => {
+        console.debug("Background session verify notice:", err.message);
+      });
     } catch (err) {
-      console.warn("Session expired or invalid:", err);
-      logout();
+      console.warn("Session restore notice:", err);
     }
   } else {
     // Show Fullscreen Auth Gate View, hide application shell
@@ -603,6 +629,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const appShell = document.getElementById('appShell');
     if (appShell) appShell.classList.add('hidden');
   }
+
+  // 2. Automatic check for app updates after 3 seconds
+  setTimeout(() => {
+    checkForAppUpdates(true);
+  }, 3000);
 
   // Load initial religious data
   fetchNextReligious('azkar');
@@ -1478,8 +1509,19 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
     const now = Date.now();
     let notifIdCounter = 1000;
 
-    // 2. Schedule Athkar (every 30 minutes for the next 24 hours -> 48 reminders)
+    // 0. Immediate 60-second test reminder (Allows user to test lock screen immediately!)
     const azkarList = (typeof EMBEDDED_AZKAR !== 'undefined') ? EMBEDDED_AZKAR : [];
+    const testThikr = azkarList.length ? azkarList[0] : null;
+    notificationsToSchedule.push({
+      id: 999,
+      title: "📿 ذكر واستغفار • تحويشة استغفار",
+      body: testThikr ? `« ${testThikr.text} »` : "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
+      channelId: 'tahwesha_floating_channel',
+      schedule: { at: new Date(now + 60 * 1000), allowWhileIdle: true },
+      sound: 'notification.wav'
+    });
+
+    // 2. Schedule Athkar (every 30 minutes for the next 24 hours -> 48 reminders)
     for (let i = 1; i <= 48; i++) {
       const scheduledTime = new Date(now + i * 30 * 60 * 1000);
       const thikr = azkarList.length ? azkarList[(i - 1) % azkarList.length] : null;
@@ -1491,7 +1533,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         title: "📿 ذكر واستغفار • تحويشة استغفار",
         body: `« ${thikrText} »${fadlText}`,
         channelId: 'tahwesha_floating_channel',
-        schedule: { at: scheduledTime },
+        schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
     }
@@ -1513,7 +1555,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         title: `📖 5 آيات من ${surahTitle}`,
         body: `${versesPreview}`,
         channelId: 'tahwesha_floating_channel',
-        schedule: { at: scheduledTime },
+        schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
     }
@@ -1531,7 +1573,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         title: `🤲 دعاء للمتوفي (${targetName})`,
         body: duaaText,
         channelId: 'tahwesha_floating_channel',
-        schedule: { at: scheduledTime },
+        schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
     }
@@ -2057,6 +2099,16 @@ async function loadAdminOverview() {
       }
     }
 
+    const fbBadge = document.getElementById('firebaseStatusBadge');
+    if (fbBadge && typeof FirebaseSync !== 'undefined') {
+      FirebaseSync.checkConnectionStatus().then(st => {
+        fbBadge.innerText = st.status === 'connected' ? 'سحابة Google نشطة ✅' : (st.status === 'error' ? 'تنبيه اتصال السحابة ⚠️' : 'غير متصل');
+        fbBadge.className = st.status === 'connected' ? 'text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 font-bold border border-emerald-800' : 'text-[10px] px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 font-bold border border-amber-800';
+      }).catch(e => {
+        fbBadge.innerText = 'أوفلاين';
+      });
+    }
+
     const data = await apiCall('/api/admin/overview');
     setElText('adminTotalUsersCount', (data.totalSubscribers || 0).toLocaleString());
     setElText('adminTableSummary', `إجمالي المشتركين: ${(data.users || []).length}`);
@@ -2255,5 +2307,119 @@ async function handleSendBroadcast(e) {
     alert("تم بث التنبيه لجميع العملاء بنجاح!");
   } catch (err) {
     alert(err.message);
+  }
+}
+
+// ---------------- IN-APP AUTO-UPDATE SYSTEM ---------------- //
+async function checkForAppUpdates(silent = true) {
+  try {
+    let updateData = null;
+    const githubRawUrl = `https://raw.githubusercontent.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/main/version.json?t=${Date.now()}`;
+    try {
+      const res = await fetch(githubRawUrl, { cache: 'no-store' });
+      if (res.ok) {
+        updateData = await res.json();
+      }
+    } catch (e) {
+      console.debug("GitHub raw update check notice:", e.message);
+    }
+
+    if (!updateData && typeof FirebaseSync !== 'undefined') {
+      try {
+        updateData = await FirebaseSync.getAppUpdateConfig();
+      } catch (e) {}
+    }
+
+    if (updateData && updateData.version) {
+      const isNewer = compareVersions(updateData.version, CURRENT_APP_VERSION) > 0;
+      if (isNewer) {
+        setElText('updateModalTitle', updateData.title || "يتوفر إصدار جديد من تحويشة استغفار");
+        setElText('updateModalVersion', `الإصدار الجديد: v${updateData.version} (حالي: v${CURRENT_APP_VERSION})`);
+        setElText('updateModalNotes', updateData.releaseNotes || "تحسينات عامة في استقرار التطبيق والتنبيهات وحفظ البيانات.");
+        const dlBtn = document.getElementById('updateModalDownloadBtn');
+        if (dlBtn) dlBtn.href = updateData.downloadUrl || "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk";
+
+        const dismissBtn = document.getElementById('updateModalDismissBtn');
+        if (dismissBtn) {
+          if (updateData.forceUpdate) dismissBtn.classList.add('hidden');
+          else dismissBtn.classList.remove('hidden');
+        }
+
+        const modal = document.getElementById('appUpdateModal');
+        if (modal) modal.classList.remove('hidden');
+        return;
+      }
+    }
+
+    if (!silent) {
+      alert(`أنت تستخدم أحدث إصدار بالفعل (v${CURRENT_APP_VERSION}) ولا توجد تحديثات جديدة حالياً ✅`);
+    }
+  } catch (err) {
+    if (!silent) {
+      alert("تعذر التحقق من التحديثات حالياً، يرجى التأكد من اتصال الإنترنت.");
+    }
+  }
+}
+
+function compareVersions(v1, v2) {
+  const p1 = (v1 || '').toString().replace(/[^0-9\.]/g, '').split('.').map(Number);
+  const p2 = (v2 || '').toString().replace(/[^0-9\.]/g, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+    const num1 = p1[i] || 0;
+    const num2 = p2[i] || 0;
+    if (num1 > num2) return 1;
+    if (num1 < num2) return -1;
+  }
+  return 0;
+}
+
+function closeUpdateModal() {
+  const modal = document.getElementById('appUpdateModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// ---------------- ADMIN CLOUD SYNC TRIGGER ---------------- //
+async function syncCloudSubscribersNow() {
+  const badge = document.getElementById('firebaseStatusBadge');
+  if (badge) badge.innerText = "جاري الاتصال بالسحابة...";
+
+  try {
+    if (typeof FirebaseSync === 'undefined') {
+      alert("مكتبة فايربيز غير مثبتة في هذا الإصدار.");
+      return;
+    }
+
+    const conn = await FirebaseSync.checkConnectionStatus();
+    if (conn.status === 'error') {
+      alert(`⚠️ ${conn.message}`);
+      if (badge) badge.innerText = "خطأ في الاتصال";
+      return;
+    }
+
+    const res = await FirebaseSync.fetchAllSubscribersForAdmin();
+    if (!res.success) {
+      alert(`⚠️ خطأ أثناء جلب المشتركين: ${res.error}\n\nنصيحة: تأكد من تفعيل قواعد Firestore Rules وجعلها (allow read, write: if true;) في كونسول فايربيز.`);
+      return;
+    }
+
+    const cloudUsers = res.users || [];
+    let localUsers = OfflineEngine.getStorage('users', []);
+    let newCount = 0;
+    cloudUsers.forEach(cu => {
+      const idx = localUsers.findIndex(u => normalizePhone(u.phone) === normalizePhone(cu.phone));
+      if (idx === -1) {
+        localUsers.push(cu);
+        newCount++;
+      } else {
+        localUsers[idx] = { ...localUsers[idx], ...cu };
+      }
+    });
+    OfflineEngine.setStorage('users', localUsers);
+
+    await loadAdminOverview();
+    if (badge) badge.innerText = "متصل بنجاح ✅";
+    alert(`✅ نجحت المزامنة السحابية بنجاح!\n\nتم العثور على ${cloudUsers.length} مشتركين في سحابة جوجل، وتم تحديث جدول المشتركين أمامك.`);
+  } catch (err) {
+    alert("حدث خطأ أثناء المزامنة: " + err.message);
   }
 }

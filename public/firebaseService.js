@@ -15,6 +15,7 @@ const firebaseConfig = {
 
 let firebaseDb = null;
 let isFirebaseConnected = false;
+let lastCloudError = null;
 
 const FirebaseSync = {
   init() {
@@ -36,10 +37,34 @@ const FirebaseSync = {
         // Sync master admin record into Firestore
         this.ensureMasterAdminInCloud();
       } catch (err) {
+        lastCloudError = err.message;
         console.warn("[Firebase] Could not initialize Firebase Cloud:", err);
       }
     } else {
       console.warn("[Firebase] SDK not loaded, operating in full local mode.");
+    }
+  },
+
+  async checkConnectionStatus() {
+    if (!firebaseDb) {
+      return { status: 'disconnected', message: 'مكتبة فايربيز غير مهيأة بعد' };
+    }
+    try {
+      await firebaseDb.collection('_health_check').doc('ping').set({
+        ping: Date.now(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      lastCloudError = null;
+      return { status: 'connected', message: 'متصل بنجاح مع سحابة جوجل فايربيز ✅' };
+    } catch (e) {
+      lastCloudError = e.message;
+      let hint = "";
+      if (e.message && e.message.includes('permission-denied')) {
+        hint = " (يرجى فتح قواعد Firestore Rules وتغييرها إلى allow read, write: if true; في كونسول فايربيز)";
+      } else if (e.message && e.message.includes('NOT_FOUND')) {
+        hint = " (يرجى الضغط على Create Database في قسم Firestore Database في كونسول فايربيز)";
+      }
+      return { status: 'error', message: `تعذر الاتصال بسحابة جوجل: ${e.message}${hint}` };
     }
   },
 
@@ -62,7 +87,6 @@ const FirebaseSync = {
         }, { merge: true });
       }
     } catch (e) {
-      // Offline or permissions notice
       console.debug("[Firebase] Master admin cloud sync notice:", e.message);
     }
   },
@@ -79,6 +103,7 @@ const FirebaseSync = {
       }, { merge: true });
       console.log(`[Firebase] User ${cleanPhone} synced to cloud.`);
     } catch (e) {
+      lastCloudError = e.message;
       console.warn("[Firebase] Sync user error:", e.message);
     }
   },
@@ -98,17 +123,21 @@ const FirebaseSync = {
   },
 
   async fetchAllSubscribersForAdmin() {
-    if (!firebaseDb) return [];
+    if (!firebaseDb) {
+      return { success: false, error: "مكتبة فايربيز غير مهيأة", users: [] };
+    }
     try {
       const snapshot = await firebaseDb.collection('users').get();
       const list = [];
       snapshot.forEach(doc => {
-        list.push(doc.data());
+        const data = doc.data();
+        if (data && data.phone) list.push(data);
       });
-      return list;
+      return { success: true, users: list };
     } catch (e) {
+      lastCloudError = e.message;
       console.warn("[Firebase] Fetch subscribers error:", e.message);
-      return [];
+      return { success: false, error: e.message, users: [] };
     }
   },
 
@@ -184,6 +213,19 @@ const FirebaseSync = {
     } catch (e) {
       console.warn("[Firebase] Delete user error:", e.message);
     }
+  },
+
+  async getAppUpdateConfig() {
+    if (!firebaseDb) return null;
+    try {
+      const doc = await firebaseDb.collection('app_config').doc('version').get();
+      if (doc.exists) {
+        return doc.data();
+      }
+    } catch (e) {
+      console.debug("Firebase version check notice:", e.message);
+    }
+    return null;
   }
 };
 
