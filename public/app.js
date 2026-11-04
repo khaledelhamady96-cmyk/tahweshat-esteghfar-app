@@ -4,7 +4,7 @@
  */
 
 // Global State
-let CURRENT_APP_VERSION = localStorage.getItem("tahwesha_app_version") || "2.0.0";
+let CURRENT_APP_VERSION = localStorage.getItem("tahwesha_app_version") || "2.5.1";
 let currentUser = null;
 let currentFinancials = null;
 let currentVehicles = [];
@@ -1989,6 +1989,7 @@ function openProfileModal() {
   setElVal('profEmail', currentUser.email || '');
   setElVal('profDeceasedName', currentUser.deceasedName || '');
   setElVal('profPassword', '');
+  if (typeof updatePrayerDstUI === 'function') updatePrayerDstUI();
   const modal = document.getElementById('profileModal');
   if (modal) modal.classList.remove('hidden');
 }
@@ -3182,21 +3183,103 @@ async function syncCloudSubscribersNow() {
 // 1. GPS PRAYER TIMES ENGINE & LIVE QIBLA DIRECTION (محرك مواقيت الصلاة والقبلة)
 // ==============================================================================
 
+// Helper: Determine whether Winter Time (GMT+2) or Summer Time (GMT+3) is active
+function getEgyptDstMode() {
+  const saved = localStorage.getItem('tahwesha_dst_mode');
+  if (saved === 'winter' || saved === 'summer') return saved;
+  // Automatic default for Egypt:
+  // Egypt DST rule: Summer time starts last Friday of April, ends last Thursday of October.
+  // Winter time is active from November 1 to late April.
+  const now = new Date();
+  const m = now.getMonth() + 1; // 1 to 12
+  return (m >= 11 || m <= 4) ? 'winter' : 'summer';
+}
+
+function getEffectivePrayerTimezone() {
+  const mode = getEgyptDstMode();
+  return (mode === 'winter') ? 2 : 3;
+}
+
 window.userPrayerCoords = {
   lat: 30.0444,
   lng: 31.2357,
   city: "القاهرة (مصر)",
-  timezone: 3 // Egypt Summer/Standard Time (GMT+3)
+  timezone: getEffectivePrayerTimezone()
 };
 
 window.calculatedPrayerTimesToday = null;
 window.nextPrayerTickerInterval = null;
 window.isAthanSoundEnabled = (localStorage.getItem('tahwesha_athan_sound') !== 'false');
 
+function toggleEgyptDstMode() {
+  const current = getEgyptDstMode();
+  const next = (current === 'winter') ? 'summer' : 'winter';
+  localStorage.setItem('tahwesha_dst_mode', next);
+
+  if (window.userPrayerCoords) {
+    window.userPrayerCoords.timezone = (next === 'winter') ? 2 : 3;
+    try {
+      localStorage.setItem('tahwesha_user_coords', JSON.stringify(window.userPrayerCoords));
+    } catch (e) {}
+  }
+
+  updatePrayerDstUI();
+  updatePrayerTimesUI();
+
+  const isWinter = (next === 'winter');
+  triggerFloatingAlertEverywhere({
+    type: "system_info",
+    title: isWinter ? "❄️ تم تفعيل التوقيت الشتوي لمصر" : "☀️ تم تفعيل التوقيت الصيفي لمصر",
+    content: isWinter
+      ? "تم تأخير مواقيت الصلاة والأذان ساعة كاملة (GMT+2) لتتطابق بدقة مع توقيت مصر الشتوي الرسمي."
+      : "تم تقديم مواقيت الصلاة والأذان ساعة كاملة (GMT+3) لتتطابق بدقة مع توقيت مصر الصيفي الرسمي.",
+    subNote: "مواقيت الصلاة الفلكية (الهيئة المصرية للمساحة)"
+  });
+}
+
+function updatePrayerDstUI() {
+  const mode = getEgyptDstMode();
+  const isWinter = (mode === 'winter');
+
+  // 1. Prayer Card Button
+  const btn = document.getElementById('prayerDstToggleBtn');
+  const icon = document.getElementById('prayerDstIcon');
+  const text = document.getElementById('prayerDstText');
+  if (btn && icon && text) {
+    if (isWinter) {
+      icon.innerText = '❄️';
+      text.innerText = 'توقيت شتوي (-1س)';
+      btn.className = 'px-2.5 py-1.5 bg-sky-950/80 hover:bg-sky-900 text-sky-200 rounded-xl text-[10px] font-bold flex items-center gap-1 border border-sky-500/50 shadow-sm active:scale-95 transition-all';
+      btn.title = 'التوقيت الشتوي مفعل حالياً (GMT+2) - اضغط للتبديل للتوقيت الصيفي';
+    } else {
+      icon.innerText = '☀️';
+      text.innerText = 'توقيت صيفي (+1س)';
+      btn.className = 'px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-200 rounded-xl text-[10px] font-bold flex items-center gap-1 border border-amber-500/50 shadow-sm active:scale-95 transition-all';
+      btn.title = 'التوقيت الصيفي مفعل حالياً (GMT+3) - اضغط للتبديل للتوقيت الشتوي';
+    }
+  }
+
+  // 2. Profile Modal Display
+  const profIcon = document.getElementById('profileDstIcon');
+  const profStatus = document.getElementById('profileDstStatus');
+  const profBtn = document.getElementById('profileDstBtn');
+  if (profIcon) profIcon.innerText = isWinter ? '❄️' : '☀️';
+  if (profStatus) {
+    profStatus.innerText = isWinter 
+      ? 'التوقيت الشتوي مفعل حالياً (GMT+2 - متأخر ساعة)' 
+      : 'التوقيت الصيفي مفعل حالياً (GMT+3 - متقدم ساعة)';
+  }
+  if (profBtn) {
+    profBtn.innerHTML = isWinter
+      ? `<span>التحويل للصيفي ☀️</span>`
+      : `<span>التحويل للشتوي ❄️</span>`;
+  }
+}
+
 function d2r(d) { return d * Math.PI / 180; }
 function r2d(r) { return r * 180 / Math.PI; }
 
-function calcPrayerTimesAstronomical(date, lat, lng, timezone = 3) {
+function calcPrayerTimesAstronomical(date, lat, lng, timezone = 2) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
@@ -3279,6 +3362,12 @@ function initPrayerTimesEngine() {
     if (cached) window.userPrayerCoords = JSON.parse(cached);
   } catch (e) {}
 
+  // Enforce effective timezone based on active DST mode
+  if (window.userPrayerCoords) {
+    window.userPrayerCoords.timezone = getEffectivePrayerTimezone();
+  }
+
+  updatePrayerDstUI();
   updatePrayerTimesUI();
 
   if (window.nextPrayerTickerInterval) clearInterval(window.nextPrayerTickerInterval);
@@ -3287,12 +3376,18 @@ function initPrayerTimesEngine() {
 
 function updatePrayerTimesUI() {
   const now = new Date();
-  const times = calcPrayerTimesAstronomical(now, window.userPrayerCoords.lat, window.userPrayerCoords.lng, window.userPrayerCoords.timezone);
+  const tz = getEffectivePrayerTimezone();
+  if (window.userPrayerCoords) {
+    window.userPrayerCoords.timezone = tz;
+  }
+  const times = calcPrayerTimesAstronomical(now, window.userPrayerCoords.lat, window.userPrayerCoords.lng, tz);
   window.calculatedPrayerTimesToday = times;
 
   const cityEl = document.getElementById('prayerCityDisplay');
   if (cityEl) {
-    cityEl.innerText = `مواقيت الصلاة اليوم حسب ${window.userPrayerCoords.city} (الهيئة المصرية للمساحة)`;
+    const mode = getEgyptDstMode();
+    const tzLabel = (mode === 'winter') ? 'التوقيت الشتوي ❄️ GMT+2' : 'التوقيت الصيفي ☀️ GMT+3';
+    cityEl.innerText = `مواقيت الصلاة اليوم حسب ${window.userPrayerCoords.city} (${tzLabel} - الهيئة المصرية للمساحة)`;
   }
 
   const container = document.getElementById('prayerTimesGridContainer');
@@ -3379,7 +3474,7 @@ function detectUserLocationForPrayer() {
         lat: lat,
         lng: lng,
         city: `موقعك الحالي (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`,
-        timezone: 3
+        timezone: getEffectivePrayerTimezone()
       };
       localStorage.setItem('tahwesha_user_coords', JSON.stringify(window.userPrayerCoords));
       updatePrayerTimesUI();
