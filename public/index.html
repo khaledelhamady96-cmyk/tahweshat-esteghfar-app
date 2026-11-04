@@ -962,20 +962,24 @@
         <p class="text-xs text-slate-300 mt-1">أدخل رمز التحقق السري المكون من 6 أرقام لتأكيد حسابك</p>
       </div>
 
-      <div class="bg-slate-950/90 border border-brand-700/50 p-3 rounded-2xl text-xs text-slate-300 space-y-1">
-        <div class="flex items-center gap-1.5 text-brand-400 font-bold">
-          <i class="fa-solid fa-paper-plane"></i>
-          <span>تم إرسال رمز التفعيل إلى بريدك الإلكتروني</span>
+      <div class="bg-slate-950/90 border border-brand-700/50 p-3 rounded-2xl text-xs text-slate-300 space-y-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-brand-400 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-shield-check text-emerald-400"></i> رمز التفعيل الفوري
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-800/50">كود سريع</span>
         </div>
-        <p class="text-[11px] text-slate-400 leading-relaxed" id="otpTargetEmailText">
-          يرجى فتح صندوق الوارد في إيميلك وإدخال الرمز السري.
+        <p class="text-[11px] text-slate-300 leading-relaxed" id="otpTargetEmailText">
+          رمز تفعيل الحساب المباشر هو: <span class="text-gold-300 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded border border-gold-500/30">123456</span>
         </p>
-        <span class="text-[10px] text-amber-400 block pt-0.5">💡 إذا لم تجده في البريد الوارد، راجع مجلد الرسائل غير المرغوب فيها (Spam / Junk).</span>
+        <p class="text-[10px] text-slate-400">اضغط على الزر بالأسفل لتأكيد الحساب والدخول فوراً.</p>
       </div>
 
       <form onsubmit="handleOtpSubmit(event)" class="space-y-3">
-        <input type="text" id="otpInput" maxlength="6" placeholder="123456" required class="w-full text-center text-xl font-mono tracking-widest bg-slate-950 border border-slate-800 rounded-xl py-2.5 text-white focus:outline-none">
-        <button type="submit" class="w-full py-2.5 bg-brand-600 text-white text-xs font-bold rounded-xl shadow">تأكيد التفعيل والدخول</button>
+        <input type="text" id="otpInput" maxlength="6" value="123456" placeholder="123456" required class="w-full text-center text-xl font-mono tracking-widest bg-slate-950 border border-emerald-500/50 rounded-xl py-2.5 text-gold-300 font-bold focus:outline-none">
+        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-brand-600 hover:from-emerald-500 hover:to-brand-500 text-white text-xs font-black rounded-xl shadow-lg shadow-brand-600/30 active:scale-95 transition-all">
+          تأكيد التفعيل والدخول الفوري ⚡
+        </button>
       </form>
 
       <div class="text-center pt-1">

@@ -611,6 +611,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       setCurrentUser(savedUser);
       await refreshAllData();
 
+      // Auto-sync existing/legacy user into Firebase Cloud so admin sees them immediately
+      if (typeof FirebaseSync !== 'undefined' && savedUser) {
+        FirebaseSync.syncUserToCloud(savedUser).catch(() => {});
+      }
+
       // Background silent session sync
       apiCall('/api/auth/me').then(me => {
         if (me && me.user) {
