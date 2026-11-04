@@ -16,7 +16,7 @@ import android.graphics.Color;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    private static final int REQ_POST_NOTIFICATIONS = 1001;
+    private static final int REQ_PERMISSIONS = 1001;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,28 +37,38 @@ public class MainActivity extends BridgeActivity {
 
         createFloatingNotificationChannel();
 
-        // 1. Explicitly request POST_NOTIFICATIONS runtime permission on Android 13+
-        requestNotificationPermissionIfNeeded();
+        // 1. Explicitly request permissions (POST_NOTIFICATIONS on Android 13+ & Location for GPS prayer calculation)
+        requestAppPermissionsIfNeeded();
 
         // 2. Request ignoring battery optimizations so OEM engines (Xiaomi, Oppo, Samsung) don't kill alarms
         requestBatteryExemptionIfNeeded();
 
         // 3. Native Alarm Engine: schedule background alarms that survive app closure!
-        TahweshaReminderManager.scheduleAllAlarms(this);
+        TahweshaReminderManager.ensureAlarmsScheduled(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Ensure alarms are alive whenever user opens or resumes the app
-        TahweshaReminderManager.scheduleAllAlarms(this);
+        // Ensure alarms are alive without spamming duplicate alarms
+        TahweshaReminderManager.ensureAlarmsScheduled(this);
     }
 
-    private void requestNotificationPermissionIfNeeded() {
+    private void requestAppPermissionsIfNeeded() {
+        java.util.List<String> perms = new java.util.ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQ_POST_NOTIFICATIONS);
+                perms.add(android.Manifest.permission.POST_NOTIFICATIONS);
             }
+        }
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            perms.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            perms.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
+        if (!perms.isEmpty()) {
+            requestPermissions(perms.toArray(new String[0]), REQ_PERMISSIONS);
         }
     }
 

@@ -4,7 +4,19 @@
  */
 
 // Global State
-let CURRENT_APP_VERSION = localStorage.getItem("tahwesha_app_version") || "2.5.2";
+const BUILD_APP_VERSION = "2.5.3";
+let CURRENT_APP_VERSION = (() => {
+  try {
+    const cached = localStorage.getItem("tahwesha_app_version");
+    if (!cached || compareVersions(BUILD_APP_VERSION, cached) > 0) {
+      localStorage.setItem("tahwesha_app_version", BUILD_APP_VERSION);
+      return BUILD_APP_VERSION;
+    }
+    return cached;
+  } catch (e) {
+    return BUILD_APP_VERSION;
+  }
+})();
 let currentUser = null;
 let currentFinancials = null;
 let currentVehicles = [];
@@ -698,23 +710,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchNextReligious('quran');
   fetchNextReligious('duaa');
 
-  // Fast initial reminders so user tests notifications right away:
-  setTimeout(async () => {
-    await fetchNextReligious('azkar');
-    if (currentReligiousData.azkar) triggerFloatingAlertEverywhere(currentReligiousData.azkar);
-  }, 20 * 1000); // 20 seconds
-
-  setTimeout(async () => {
-    await fetchNextReligious('quran');
-    if (currentReligiousData.quran) triggerFloatingAlertEverywhere(currentReligiousData.quran);
-  }, 60 * 1000); // 1 minute
-
-  setTimeout(async () => {
-    await fetchNextReligious('duaa');
-    if (currentReligiousData.duaa) triggerFloatingAlertEverywhere(currentReligiousData.duaa);
-  }, 120 * 1000); // 2 minutes
-
-  // Repeating intervals:
+  // Staggered repeating reminders when app is actively open in foreground:
   setInterval(async () => {
     await fetchNextReligious('azkar');
     if (currentReligiousData.azkar) triggerFloatingAlertEverywhere(currentReligiousData.azkar);
@@ -3001,33 +2997,54 @@ async function handleSendBroadcast(e) {
 // ---------------- IN-APP AUTO-UPDATE & LIVE OTA SYSTEM ---------------- //
 let _pendingLiveUpdate = null;
 
+function downloadAndInstallApk() {
+  const defaultUrl = "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk";
+  const url = (_pendingLiveUpdate && _pendingLiveUpdate.downloadUrl) || defaultUrl;
+  try {
+    if (window.Capacitor) {
+      window.open(url, '_system');
+    } else {
+      window.location.href = url;
+    }
+  } catch (e) {
+    window.location.href = url;
+  }
+}
+
 async function checkForAppUpdates(silent = true) {
   try {
     const checkBtn = document.querySelector('button[title*="البحث عن التحديثات"] i');
     if (checkBtn) checkBtn.classList.add('animate-spin');
 
-    let updateData = null;
+    let candidateFirebase = null;
+    let candidateGithub = null;
 
-    // 1. Check Firebase Live Update first (Real-Time Cloud)
+    // 1. Check Firebase Live Update (Real-Time Cloud)
     if (typeof FirebaseSync !== 'undefined' && FirebaseSync.getLatestLiveUpdate) {
       try {
-        updateData = await FirebaseSync.getLatestLiveUpdate();
+        candidateFirebase = await FirebaseSync.getLatestLiveUpdate();
       } catch (e) {
         console.debug("Firebase live update check notice:", e.message);
       }
     }
 
-    // 2. Check GitHub raw version.json if no firebase update
-    if (!updateData) {
-      const githubRawUrl = `https://raw.githubusercontent.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/main/version.json?t=${Date.now()}`;
-      try {
-        const res = await fetch(githubRawUrl, { cache: 'no-store' });
-        if (res.ok) {
-          updateData = await res.json();
-        }
-      } catch (e) {
-        console.debug("GitHub raw update check notice:", e.message);
+    // 2. ALWAYS also check GitHub raw version.json
+    const githubRawUrl = `https://raw.githubusercontent.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/main/version.json?t=${Date.now()}`;
+    try {
+      const res = await fetch(githubRawUrl, { cache: 'no-store' });
+      if (res.ok) {
+        candidateGithub = await res.json();
       }
+    } catch (e) {
+      console.debug("GitHub raw update check notice:", e.message);
+    }
+
+    // Pick whichever candidate has the HIGHER version
+    let updateData = null;
+    if (candidateFirebase && candidateGithub) {
+      updateData = compareVersions(candidateFirebase.version, candidateGithub.version) >= 0 ? candidateFirebase : candidateGithub;
+    } else {
+      updateData = candidateFirebase || candidateGithub;
     }
 
     if (checkBtn) checkBtn.classList.remove('animate-spin');
@@ -3040,16 +3057,16 @@ async function checkForAppUpdates(silent = true) {
         const badge = document.getElementById('updateAvailableBadge');
         if (badge) badge.classList.remove('hidden');
 
-        setElText('updateModalTitle', updateData.title || "يتوفر إصدار وتحديث سحابي جديد");
+        setElText('updateModalTitle', updateData.title || "يتوفر إصدار وتحديث جديد للتطبيق");
         setElText('updateModalVersion', `الإصدار الجديد: v${updateData.version} (حالي: v${CURRENT_APP_VERSION})`);
-        setElText('updateModalNotes', updateData.releaseNotes || "تحسينات عامة في استقرار التطبيق والتنبيهات والواجهة.");
+        setElText('updateModalNotes', updateData.releaseNotes || "تحسينات عامة في استقرار التطبيق والتنبيهات والواجهة ومواقيت الصلاة.");
         
         const dlBtn = document.getElementById('updateModalDownloadBtn');
         if (dlBtn) dlBtn.href = updateData.downloadUrl || "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk";
 
         const dismissBtn = document.getElementById('updateModalDismissBtn');
         if (dismissBtn) {
-          if (updateData.forceUpdate) dismissBtn.classList.add('hidden');
+          if (updateData.forceUpdate || updateData.forceApply) dismissBtn.classList.add('hidden');
           else dismissBtn.classList.remove('hidden');
         }
 
@@ -3508,13 +3525,13 @@ function updateNextPrayerCountdown() {
 }
 
 function detectUserLocationForPrayer() {
+  const cityEl = document.getElementById('prayerCityDisplay');
   if (!navigator.geolocation) {
-    alert("تحديد الموقع غير مدعوم في هذا الجهاز، تم اعتماد توقيت القاهرة افتراضياً.");
+    if (cityEl) cityEl.innerText = "تحديد الموقع غير مدعوم في هذا المتصفح، تم اعتماد توقيت القاهرة افتراضياً.";
     return;
   }
 
-  const cityEl = document.getElementById('prayerCityDisplay');
-  if (cityEl) cityEl.innerText = "جاري تحديد موقعك بدقة عبر الأقمار الصناعية (GPS)...";
+  if (cityEl) cityEl.innerText = "جاري تحديد موقعك بدقة عبر الأقمار الصناعية (GPS)... 🛰️";
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -3528,14 +3545,18 @@ function detectUserLocationForPrayer() {
       };
       localStorage.setItem('tahwesha_user_coords', JSON.stringify(window.userPrayerCoords));
       updatePrayerTimesUI();
-      alert("✅ تم تحديد موقعك الجغرافي وحساب مواقيت الصلاة واتجاه القبلة بدقة متناهية!");
+      if (cityEl) {
+        cityEl.innerText = `✅ تم تحديد موقعك (${lat.toFixed(2)}°, ${lng.toFixed(2)}°) ومواقيت الصلاة والقبلة بدقة!`;
+      }
     },
     (err) => {
       console.warn("Geolocation notice:", err.message);
-      alert("تعذر الوصول لـ GPS، سيتم الاستمرار بمواقيت القاهرة القياسية.");
+      if (cityEl) {
+        cityEl.innerText = "تعذر الوصول لـ GPS حالياً، تم الاستمرار بمواقيت القاهرة القياسية (تأكد من تشغيل الموقع GPS).";
+      }
       updatePrayerTimesUI();
     },
-    { timeout: 10000, enableHighAccuracy: true }
+    { timeout: 8000, enableHighAccuracy: true, maximumAge: 60000 }
   );
 }
 

@@ -45,30 +45,52 @@ public class TahweshaReminderManager {
     private static int quranIndex = 0;
     private static int duaaIndex = 0;
 
+    public static void ensureAlarmsScheduled(Context context) {
+        if (context == null) return;
+        try {
+            android.content.SharedPreferences sp = context.getSharedPreferences("tahwesha_alarm_prefs", Context.MODE_PRIVATE);
+            long lastScheduled = sp.getLong("last_scheduled_timestamp", 0);
+            long now = System.currentTimeMillis();
+
+            // Reschedule only if never scheduled or more than 6 hours elapsed
+            if (now - lastScheduled > 6 * 60 * 60 * 1000L) {
+                scheduleAllAlarms(context);
+                sp.edit().putLong("last_scheduled_timestamp", now).apply();
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in ensureAlarmsScheduled", t);
+        }
+    }
+
     public static void scheduleAllAlarms(Context context) {
         if (context == null) return;
         try {
-            // 1. Initial 15-second test reminder so user can lock screen and verify immediately
-            scheduleSingleAlarm(context, TYPE_TEST, 15 * 1000L, 1001,
+            // Schedule Azkar staggered at 20 minutes
+            scheduleSingleAlarm(context, TYPE_AZKAR, 20 * 60 * 1000L, 2001,
                 "📿 ذكر واستغفار • تحويشة استغفار",
-                "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ");
+                AZKAR_ITEMS[0]);
 
-            // 2. Schedule Azkar (every 30 minutes)
-            scheduleNextForType(context, TYPE_AZKAR);
+            // Schedule Quran staggered at 50 minutes
+            scheduleSingleAlarm(context, TYPE_QURAN, 50 * 60 * 1000L, 2002,
+                "📖 آيات بينات من الذكر الحكيم",
+                QURAN_ITEMS[0]);
 
-            // 3. Schedule Quran (every 60 minutes)
-            scheduleNextForType(context, TYPE_QURAN);
+            // Schedule Duaa staggered at 80 minutes
+            scheduleSingleAlarm(context, TYPE_DUAA, 80 * 60 * 1000L, 2003,
+                "🤲 دعاء للمتوفي • تحويشة استغفار",
+                DUAA_ITEMS[0]);
 
-            // 4. Schedule Duaa (every 90 minutes)
-            scheduleNextForType(context, TYPE_DUAA);
+            // Schedule Vehicle reminder at 3 hours
+            scheduleSingleAlarm(context, TYPE_VEHICLE, 3 * 60 * 60 * 1000L, 2004,
+                "🚗 متابعة رخص المركبات والسيارات",
+                "تذكير: راجع تواريخ انتهاء رخص مركباتك المسجلة للتجديد في موعدها.");
 
-            // 5. Schedule Vehicle alert (every 3 hours)
-            scheduleNextForType(context, TYPE_VEHICLE);
+            // Schedule Financial reminder at 5 hours
+            scheduleSingleAlarm(context, TYPE_FINANCIAL, 5 * 60 * 60 * 1000L, 2005,
+                "💳 متابعة الأقساط والجمعيات المالية",
+                "تذكير: راجع مواعيد سداد الأقساط والجمعيات الشهرية المسجلة.");
 
-            // 6. Schedule Financial installment reminder (every 4 hours)
-            scheduleNextForType(context, TYPE_FINANCIAL);
-
-            Log.d(TAG, "All background alarms successfully scheduled!");
+            Log.d(TAG, "All background alarms successfully scheduled with smooth spacing!");
         } catch (Throwable t) {
             Log.e(TAG, "Error in scheduleAllAlarms", t);
         }
