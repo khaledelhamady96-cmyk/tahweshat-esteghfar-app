@@ -4,7 +4,7 @@
  */
 
 // Global State
-let CURRENT_APP_VERSION = localStorage.getItem("tahwesha_app_version") || "2.5.1";
+let CURRENT_APP_VERSION = localStorage.getItem("tahwesha_app_version") || "2.5.2";
 let currentUser = null;
 let currentFinancials = null;
 let currentVehicles = [];
@@ -697,21 +697,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   fetchNextReligious('quran');
   fetchNextReligious('duaa');
 
-  // Background timer: 30m Azkar
-  setInterval(() => {
-    fetchNextReligious('azkar');
+  // Fast initial reminders so user tests notifications right away:
+  setTimeout(async () => {
+    await fetchNextReligious('azkar');
+    if (currentReligiousData.azkar) triggerFloatingAlertEverywhere(currentReligiousData.azkar);
+  }, 20 * 1000); // 20 seconds
+
+  setTimeout(async () => {
+    await fetchNextReligious('quran');
+    if (currentReligiousData.quran) triggerFloatingAlertEverywhere(currentReligiousData.quran);
+  }, 60 * 1000); // 1 minute
+
+  setTimeout(async () => {
+    await fetchNextReligious('duaa');
+    if (currentReligiousData.duaa) triggerFloatingAlertEverywhere(currentReligiousData.duaa);
+  }, 120 * 1000); // 2 minutes
+
+  // Repeating intervals:
+  setInterval(async () => {
+    await fetchNextReligious('azkar');
     if (currentReligiousData.azkar) triggerFloatingAlertEverywhere(currentReligiousData.azkar);
   }, 30 * 60 * 1000);
 
-  // Background timer: 60m Quran
-  setInterval(() => {
-    fetchNextReligious('quran');
+  setInterval(async () => {
+    await fetchNextReligious('quran');
     if (currentReligiousData.quran) triggerFloatingAlertEverywhere(currentReligiousData.quran);
   }, 60 * 60 * 1000);
 
-  // Background timer: 90m Duaa for deceased
-  setInterval(() => {
-    fetchNextReligious('duaa');
+  setInterval(async () => {
+    await fetchNextReligious('duaa');
     if (currentReligiousData.duaa) triggerFloatingAlertEverywhere(currentReligiousData.duaa);
   }, 90 * 60 * 1000);
 
@@ -1373,31 +1387,30 @@ function testFloatingAlert(type) {
     // Fallback payload
     alertPayload = {
       type: "azkar",
-      title: "تذكير بذكر الله (نصف ساعة)",
-      content: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
+      title: "📿 ذكر واستغفار • تحويشة استغفار",
+      content: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ (من لزم الاستغفار جعل الله له من كل هم فرجاً)",
       fadl: "من لزم الاستغفار جعل الله له من كل هم فرجاً ومن كل ضيق مخرجاً"
     };
   }
 
-  // Trigger floating alert across all platforms (Mobile Heads-up, Electron, In-App banner)
+  // 1. Immediate floating alert
   triggerFloatingAlertEverywhere(alertPayload);
 
-  // If on mobile Android (Capacitor), schedule test notification in 3 seconds so user can test background / lockscreen
+  // 2. Schedule a 15-second alarm for lock-screen testing!
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
     try {
       window.Capacitor.Plugins.LocalNotifications.schedule({
         notifications: [{
           id: 9999,
-          title: alertPayload.title || "تنبيه عائم • تحويشة استغفار",
+          title: alertPayload.title || "📿 ذكر واستغفار • تحويشة استغفار",
           body: alertPayload.content || alertPayload.message || "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
           channelId: 'tahwesha_heads_up_v4',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#10B981',
-          schedule: { at: new Date(Date.now() + 3000), allowWhileIdle: true },
+          schedule: { at: new Date(Date.now() + 15000) },
           sound: 'notification.wav'
         }]
       });
-      alert("تم ضبط التنبيه! اخرج من البرنامج أو اقفل شاشة الموبايل الآن لتشاهد التنبيه العائم يظهر فوق شاشتك بعد 3 ثوانٍ 🔔");
     } catch (e) {
       console.warn("Test notification schedule notice:", e);
     }
@@ -1884,8 +1897,7 @@ async function triggerFloatingAlertEverywhere(alertPayload) {
           channelId: 'tahwesha_heads_up_v4',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#10B981',
-          sound: 'notification.wav',
-          schedule: { at: new Date(Date.now() + 300), allowWhileIdle: true }
+          sound: 'notification.wav'
         }]
       });
     } catch (e) {
@@ -2735,32 +2747,13 @@ window.testAdminNotification = async function(type, delaySeconds = 0) {
   }
 
   if (delaySeconds <= 0) {
-    // Instant floating alert
+    // Instant floating alert everywhere
     triggerFloatingAlertEverywhere({
       type: "admin_test",
       title: title,
       content: body,
       subNote: "تنبيه تجريبي فوري للإدارة"
     });
-
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
-      try {
-        await window.Capacitor.Plugins.LocalNotifications.schedule({
-          notifications: [{
-            id: Math.floor(Math.random() * 8000) + 1000,
-            title: title,
-            body: body,
-            channelId: 'tahwesha_heads_up_v4',
-            smallIcon: 'ic_stat_tahwesha',
-            iconColor: iconColor,
-            sound: sound,
-            schedule: { at: new Date(Date.now() + 500) }
-          }]
-        });
-      } catch (e) {
-        console.warn("Capacitor instant notification error:", e);
-      }
-    }
   } else {
     // Scheduled test for testing lock screen
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {

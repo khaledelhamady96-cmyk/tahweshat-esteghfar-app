@@ -3,7 +3,12 @@ package com.tahwesha.esteghfar;
 import android.os.Bundle;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.WindowManager;
 import android.net.Uri;
 import android.media.AudioAttributes;
@@ -11,6 +16,8 @@ import android.graphics.Color;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    private static final int REQ_POST_NOTIFICATIONS = 1001;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,8 +37,42 @@ public class MainActivity extends BridgeActivity {
 
         createFloatingNotificationChannel();
 
-        // Native Alarm Engine: schedule background alarms that survive app closure!
+        // 1. Explicitly request POST_NOTIFICATIONS runtime permission on Android 13+
+        requestNotificationPermissionIfNeeded();
+
+        // 2. Request ignoring battery optimizations so OEM engines (Xiaomi, Oppo, Samsung) don't kill alarms
+        requestBatteryExemptionIfNeeded();
+
+        // 3. Native Alarm Engine: schedule background alarms that survive app closure!
         TahweshaReminderManager.scheduleAllAlarms(this);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Ensure alarms are alive whenever user opens or resumes the app
+        TahweshaReminderManager.scheduleAllAlarms(this);
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQ_POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    private void requestBatteryExemptionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                    Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                }
+            } catch (Exception ignored) {}
+        }
     }
 
     private void createFloatingNotificationChannel() {

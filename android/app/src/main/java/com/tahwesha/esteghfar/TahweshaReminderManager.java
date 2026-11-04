@@ -5,8 +5,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 public class TahweshaReminderManager {
+    private static final String TAG = "TahweshaReminder";
 
     public static final String TYPE_TEST = "type_test";
     public static final String TYPE_AZKAR = "type_azkar";
@@ -44,28 +46,36 @@ public class TahweshaReminderManager {
     private static int duaaIndex = 0;
 
     public static void scheduleAllAlarms(Context context) {
-        // 1. Quick 15-second test reminder so user can lock screen and see it
-        scheduleSingleAlarm(context, TYPE_TEST, 15 * 1000, 1001,
-            "📿 ذكر واستغفار • تحويشة استغفار",
-            "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ");
+        if (context == null) return;
+        try {
+            // 1. Initial 15-second test reminder so user can lock screen and verify immediately
+            scheduleSingleAlarm(context, TYPE_TEST, 15 * 1000L, 1001,
+                "📿 ذكر واستغفار • تحويشة استغفار",
+                "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ");
 
-        // 2. Schedule Azkar (30 minutes)
-        scheduleNextForType(context, TYPE_AZKAR);
+            // 2. Schedule Azkar (every 30 minutes)
+            scheduleNextForType(context, TYPE_AZKAR);
 
-        // 3. Schedule Quran (60 minutes)
-        scheduleNextForType(context, TYPE_QURAN);
+            // 3. Schedule Quran (every 60 minutes)
+            scheduleNextForType(context, TYPE_QURAN);
 
-        // 4. Schedule Duaa (90 minutes)
-        scheduleNextForType(context, TYPE_DUAA);
+            // 4. Schedule Duaa (every 90 minutes)
+            scheduleNextForType(context, TYPE_DUAA);
 
-        // 5. Schedule Vehicle alert (every 3 hours)
-        scheduleNextForType(context, TYPE_VEHICLE);
+            // 5. Schedule Vehicle alert (every 3 hours)
+            scheduleNextForType(context, TYPE_VEHICLE);
 
-        // 6. Schedule Financial installment reminder (every 4 hours)
-        scheduleNextForType(context, TYPE_FINANCIAL);
+            // 6. Schedule Financial installment reminder (every 4 hours)
+            scheduleNextForType(context, TYPE_FINANCIAL);
+
+            Log.d(TAG, "All background alarms successfully scheduled!");
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in scheduleAllAlarms", t);
+        }
     }
 
     public static void scheduleNextForType(Context context, String type) {
+        if (context == null) return;
         long delayMillis;
         int id;
         String title;
@@ -86,7 +96,7 @@ public class TahweshaReminderManager {
         } else if (TYPE_DUAA.equals(type)) {
             delayMillis = 90 * 60 * 1000L; // 90 minutes
             id = 2003;
-            title = "🤲 دعاء للمتوفي • تحويشة استغفar";
+            title = "🤲 دعاء للمتوفي • تحويشة استغفار";
             body = DUAA_ITEMS[Math.abs(duaaIndex % DUAA_ITEMS.length)];
             duaaIndex++;
         } else if (TYPE_VEHICLE.equals(type)) {
@@ -107,6 +117,7 @@ public class TahweshaReminderManager {
     }
 
     public static void scheduleSingleAlarm(Context context, String type, long delayMillis, int id, String title, String body) {
+        if (context == null) return;
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
 
@@ -125,10 +136,37 @@ public class TahweshaReminderManager {
 
         long triggerAt = System.currentTimeMillis() + delayMillis;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-        } else {
-            am.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+        try {
+            // Android 12+ (API 31+) & Android 14 (API 34): Check if exact alarms can be scheduled
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (am.canScheduleExactAlarms()) {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                } else {
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+            } else {
+                am.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+            }
+        } catch (SecurityException se) {
+            Log.w(TAG, "Exact alarm restricted, falling back to setAndAllowWhileIdle: " + se.getMessage());
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                } else {
+                    am.set(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Fallback setAndAllowWhileIdle failed", t);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Unexpected error in scheduleSingleAlarm", t);
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                }
+            } catch (Throwable ignored) {}
         }
     }
 }
