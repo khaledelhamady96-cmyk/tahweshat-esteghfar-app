@@ -274,6 +274,62 @@ const FirebaseSync = {
     } catch (e) {
       console.debug("[Firebase] Broadcast listen setup notice:", e.message);
     }
+  },
+
+  // ---------------- LIVE OVER-THE-AIR (OTA) UPDATES ---------------- //
+  // نشر وفحص التحديثات الحية وتطبيقها فوراً دون تحميل ملف APK جديد
+  async publishLiveUpdate(version, title, notes, options = {}) {
+    if (!firebaseDb) return { success: false, error: "Firebase not initialized" };
+    try {
+      const updateData = {
+        version: version || "2.1.0",
+        title: title || "تحديث سحابي فوري جديد",
+        releaseNotes: notes || "تم تطبيق تحسينات برمجية وميزات جديدة فورياً.",
+        publishedAt: new Date().toISOString(),
+        forceApply: options.forceApply !== false,
+        downloadUrl: options.downloadUrl || "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk",
+        patchData: options.patchData || null
+      };
+      await firebaseDb.collection('app_config').doc('live_update').set(updateData);
+      console.log("[Firebase] Live update published successfully:", updateData);
+      return { success: true, update: updateData };
+    } catch (e) {
+      console.warn("[Firebase] Publish live update error:", e.message);
+      return { success: false, error: e.message };
+    }
+  },
+
+  async getLatestLiveUpdate() {
+    if (!firebaseDb) return null;
+    try {
+      const doc = await firebaseDb.collection('app_config').doc('live_update').get();
+      if (doc.exists) {
+        return doc.data();
+      }
+    } catch (e) {
+      console.debug("[Firebase] Get live update notice:", e.message);
+    }
+    return null;
+  },
+
+  listenForLiveUpdates(callback) {
+    if (!firebaseDb) return;
+    try {
+      firebaseDb.collection('app_config').doc('live_update').onSnapshot(doc => {
+        if (doc && doc.exists) {
+          const data = doc.data();
+          if (data && data.version) {
+            if (typeof callback === 'function') {
+              callback(data);
+            }
+          }
+        }
+      }, err => {
+        console.debug("[Firebase] Live update listener notice:", err.message);
+      });
+    } catch (e) {
+      console.debug("[Firebase] Live update listener setup notice:", e.message);
+    }
   }
 };
 

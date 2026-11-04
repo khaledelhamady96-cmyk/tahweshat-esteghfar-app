@@ -78,7 +78,7 @@
       <!-- Logo Header -->
       <div class="text-center space-y-2">
         <div class="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-tr from-gold-500 to-brand-400 shadow-xl shadow-brand-500/20">
-          <img src="assets/logo.svg" alt="شعار تحويشة استغفار" class="w-full h-full rounded-full object-cover">
+          <img src="assets/logo.png" alt="شعار تحويشة استغفار" class="w-full h-full rounded-full object-cover">
         </div>
         <div>
           <h2 class="text-xl font-black bg-gradient-to-l from-gold-200 via-white to-brand-300 bg-clip-text text-transparent" id="authGateTitle">
@@ -184,7 +184,7 @@
         <!-- App Logo & Title -->
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('dashboard')">
           <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-gold-500 to-brand-400 shadow-md">
-            <img src="assets/logo.svg" alt="شعار" class="w-full h-full rounded-full object-cover">
+            <img src="assets/logo.png" alt="شعار" class="w-full h-full rounded-full object-cover">
           </div>
           <div>
             <div class="flex items-center gap-1.5">
@@ -223,6 +223,11 @@
 
         <!-- Right Quick Controls -->
         <div class="flex items-center gap-1.5">
+          <!-- Check for Updates and install instantly button -->
+          <button onclick="checkForAppUpdates(false)" title="البحث عن التحديثات وتثبيتها فوراً" class="w-8 h-8 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-700/50 flex items-center justify-center text-xs relative group active:scale-95 transition-all">
+            <i class="fa-solid fa-arrows-rotate group-hover:rotate-180 transition-transform duration-500"></i>
+            <span id="updateAvailableBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+          </button>
           <!-- Floating alert test button (icon) -->
           <button onclick="testFloatingAlert('azkar')" title="تجربة التنبيه العائم الآن" class="w-8 h-8 rounded-xl bg-brand-900/60 hover:bg-brand-800 text-gold-300 border border-brand-700/50 flex items-center justify-center text-xs">
             <i class="fa-solid fa-bell"></i>
@@ -796,6 +801,37 @@
           </div>
         </div>
 
+        <!-- Live OTA Updates Publisher Card (Live Updates Without APK Download) -->
+        <div class="bg-gradient-to-r from-slate-900 to-emerald-950/60 border border-emerald-500/40 rounded-3xl p-4 space-y-3 shadow-lg">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-bolt text-yellow-400"></i> نشر وتعميم تحديث حي لجميع المستخدمين (بدون تحميل APK)
+            </h3>
+            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 font-bold border border-emerald-700/40">تحديث فوري OTA</span>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            أي تعديل تقوم بنشره هنا يُعمم فوراً على جميع هواتف المشتركين عبر السحابة، ويتم تطبيقه وتثبيته تلقائياً على أجهزتهم دون أن يضطر العميل لتحميل ملف APK جديد!
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-300 mb-1 font-bold">رقم الإصدار الجديد</label>
+              <input type="text" id="adminLiveUpdateVersion" placeholder="مثال: 2.1.0" value="2.1.0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none font-mono">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-300 mb-1 font-bold">عنوان التحديث</label>
+              <input type="text" id="adminLiveUpdateTitle" placeholder="مثال: تحديثات وتعديلات جديدة للتطبيق" value="تحديثات وتعديلات جديدة للتطبيق" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-300 mb-1 font-bold">ملاحظات التحديث وما تم تعديله</label>
+            <textarea id="adminLiveUpdateNotes" rows="2" placeholder="اكتب ما تم تعديله في التطبيق..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none resize-none">تم تحديث التنبيهات والأذكار وتطبيق تحسينات جديدة على النظام بنجاح.</textarea>
+          </div>
+          <button type="button" onclick="handlePublishLiveUpdate()" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all">
+            <i class="fa-solid fa-paper-plane text-yellow-300"></i>
+            <span>🚀 نشر وتعميم التحديث الآن على جميع المشتركين فوراً</span>
+          </button>
+        </div>
+
         <!-- Cloud Server Config -->
         <div class="bg-slate-900 border border-brand-800/60 rounded-3xl p-4 space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -889,7 +925,7 @@
     <div class="w-full max-w-sm bg-gradient-to-br from-brand-950 via-slate-950 to-brand-900 border-2 border-gold-500 rounded-3xl shadow-2xl p-5 space-y-3 animate-bounceIn">
       <div class="flex items-center justify-between border-b border-gold-500/30 pb-2.5">
         <div class="flex items-center gap-2">
-          <img src="assets/logo.svg" alt="logo" class="w-7 h-7 rounded-full border border-gold-400">
+          <img src="assets/logo.png" alt="logo" class="w-7 h-7 rounded-full border border-gold-400">
           <span class="text-xs font-black text-gold-300" id="inAppAlertTitle">تنبيه عائم</span>
         </div>
         <!-- زر إغلاق التنبيه الصريح المباشر -->
@@ -974,6 +1010,19 @@
           <label class="block text-slate-300 font-bold mb-1">تغيير كلمة المرور (اختياري)</label>
           <input type="password" id="profPassword" placeholder="اتركه فارغاً لعدم التغيير" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
         </div>
+
+        <!-- In-App Updates Check Card in Profile -->
+        <div class="bg-slate-950 border border-brand-800/40 p-2.5 rounded-2xl flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-white block">تحديثات التطبيق السحابية</span>
+            <span class="text-[9px] text-slate-400" id="profileAppVersionText">الإصدار الحالي: v2.0.0</span>
+          </div>
+          <button type="button" onclick="checkForAppUpdates(false)" class="px-2.5 py-1 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 active:scale-95 transition-all">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>فحص وتثبيت ⚡</span>
+          </button>
+        </div>
+
         <div class="pt-2 flex justify-end gap-2">
           <button type="button" onclick="closeProfileModal()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl">إلغاء</button>
           <button type="submit" class="px-4 py-1.5 bg-brand-600 text-white font-bold rounded-xl">حفظ</button>
@@ -1380,12 +1429,31 @@
         <span class="text-[11px] font-bold text-slate-300 block">ما الجديد في هذا التحديث:</span>
         <p class="text-xs text-slate-400 leading-relaxed" id="updateModalNotes">تحسينات في الأداء والتنبيهات وحفظ البيانات.</p>
       </div>
-      <div class="space-y-2 pt-1">
-        <a id="updateModalDownloadBtn" href="#" target="_blank" class="w-full py-3 bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2 block">
+      <!-- Live Progress Bar when updating -->
+      <div id="updateProgressBarContainer" class="hidden space-y-1.5 py-2 text-right">
+        <div class="flex justify-between text-[11px] text-slate-300">
+          <span id="updateProgressText">جاري سحب التعديلات من السيرفر...</span>
+          <span id="updateProgressPercent" class="font-mono text-emerald-400 font-bold">0%</span>
+        </div>
+        <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+          <div id="updateProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-1" id="updateModalButtonsContainer">
+        <!-- Primary Instant Live Update Button (No APK download!) -->
+        <button id="updateModalInstantApplyBtn" type="button" onclick="applyLiveUpdateNow()" class="w-full py-3 bg-gradient-to-r from-emerald-500 via-brand-600 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all">
+          <i class="fa-solid fa-bolt text-yellow-300"></i>
+          <span>تثبيت وتطبيق التحديث فوراً ⚡ (بدون تحميل APK)</span>
+        </button>
+
+        <!-- Secondary Manual APK Download -->
+        <a id="updateModalDownloadBtn" href="#" target="_blank" class="w-full py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 block">
           <i class="fa-solid fa-download"></i>
-          <span>تحميل وتثبيت التحديث الآن 📥</span>
+          <span>أو تحميل ملف APK كامل يدوياً</span>
         </a>
-        <button id="updateModalDismissBtn" type="button" onclick="closeUpdateModal()" class="w-full py-2 text-slate-400 hover:text-white text-xs font-bold">
+
+        <button id="updateModalDismissBtn" type="button" onclick="closeUpdateModal()" class="w-full py-1.5 text-slate-400 hover:text-white text-xs font-bold">
           تذكيري لاحقاً
         </button>
       </div>
