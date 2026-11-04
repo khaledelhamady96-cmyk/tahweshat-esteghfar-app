@@ -29,6 +29,9 @@ public class MainActivity extends BridgeActivity {
         }
 
         createFloatingNotificationChannel();
+
+        // Native Alarm Engine: schedule background alarms that survive app closure!
+        TahweshaReminderManager.scheduleAllAlarms(this);
     }
 
     private void createFloatingNotificationChannel() {

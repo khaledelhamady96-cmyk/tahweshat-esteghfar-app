@@ -36,6 +36,26 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Native Alarm & Floating Notification Receivers -->
+        <receiver
+            android:name=".TahweshaAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.tahwesha.esteghfar.ACTION_FIRE_REMINDER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".TahweshaBootReceiver"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->
