@@ -2043,32 +2043,6 @@ async function deleteVehicle(id) {
   }
 }
 
-// ---------------- SERVER CLOUD CONFIG MODAL (FOR GATE & MOBILE) ---------------- //
-function openServerConfigModal() {
-  const current = localStorage.getItem('tahwesha_cloud_server_url') || '';
-  setElVal('gateCloudServerUrlInput', current);
-  const m = document.getElementById('serverConfigModal');
-  if (m) m.classList.remove('hidden');
-}
-
-function closeServerConfigModal() {
-  const m = document.getElementById('serverConfigModal');
-  if (m) m.classList.add('hidden');
-}
-
-function handleSaveServerConfig(e) {
-  e.preventDefault();
-  const url = getElVal('gateCloudServerUrlInput').trim();
-  if (url) {
-    localStorage.setItem('tahwesha_cloud_server_url', url);
-    alert('تم حفظ رابط السيرفر السحابي بنجاح! سيتم الآن إعادة التحميل للاتصال بقاعدة بيانات الإنترنت.');
-  } else {
-    localStorage.removeItem('tahwesha_cloud_server_url');
-    alert('تم مسح الرابط والعودة لوضع الاتصال المحلي الافتراضي.');
-  }
-  location.reload();
-}
-
 // ---------------- ADMIN PANEL ---------------- //
 function saveCloudServerUrl() {
   const input = document.getElementById('cloudServerUrlInput');
