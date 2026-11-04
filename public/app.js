@@ -607,6 +607,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPrayerTimesEngine();
   initSecurityLock();
   initRealtimeCloudListeners();
+  if (typeof updateShareCounterDisplay === 'function') updateShareCounterDisplay();
 
   // 1. Persistent User Session (Never log out when closing or exiting app)
   const savedUserStr = localStorage.getItem('tahwesha_user');
@@ -1653,6 +1654,62 @@ function copyOtpCode() {
     alert(`كود التحقق الخاص بك هو: ${code}`);
   });
 }
+
+// ---------------- VIRAL IN-APP SHARING (انشر تؤجر) ---------------- //
+window.shareAppViaWhatsApp = function() {
+  const shareText = `السلام عليكم ورحمة الله وبركاته 💚\n\nتطبيق «تحويشة استغفار» عجبني جداً وحبيت أشاركه معاك كصدقة جارية:\n📿 بيفكرك بالاستغفار والقرآن والدعاء للمتوفين بإشعارات عائمة حتى لو الشاشة مقفولة.\n🕌 مواقيت الصلاة والقبلة بالثانية حسب التوقيت الشتوي في مصر.\n💰 إدارة الميزانية ومتابعة الأقساط والجمعيات والديون.\n🚗 تذكير انتهاء رخص السيارات قبلها بشهر بدون غرامات.\n🔒 محمي ببصمة الإصبع وخفيف جداً (4 ميجا بس) ومجاني لوجه الله بدون إعلانات.\n\n📲 حمله دلوقتي من الرابط المباشر:\nhttps://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk`;
+
+  let count = parseInt(localStorage.getItem('tahwesha_share_count') || '0');
+  count++;
+  localStorage.setItem('tahwesha_share_count', count);
+  updateShareCounterDisplay();
+
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+  window.open(url, '_blank');
+
+  triggerFloatingAlertEverywhere({
+    type: "system_info",
+    title: "✨ جزاك الله خيراً على نشر الخير",
+    content: "«الدال على الخير كفاعله» جعل الله لك أجراً في كل تسبيحة واستغفار يقوم بها من حمل التطبيق بسببك.",
+    subNote: "مشاركة صدقة جارية"
+  });
+};
+
+window.shareAppGeneral = async function() {
+  const shareData = {
+    title: "تطبيق تحويشة استغفار",
+    text: "تطبيق تحويشة استغفار - الأذكار العائمة، الميزانية الذكية، مواقيت الصلاة، وتنبيهات الرخص",
+    url: "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk"
+  };
+
+  let count = parseInt(localStorage.getItem('tahwesha_share_count') || '0');
+  count++;
+  localStorage.setItem('tahwesha_share_count', count);
+  updateShareCounterDisplay();
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      triggerFloatingAlertEverywhere({
+        type: "system_info",
+        title: "✅ تم نسخ رابط التحميل",
+        content: "تم نسخ رابط التحميل المباشر للحافظة، يمكنك لصقه ومشاركته في أي تطبيق أو محادثة.",
+        subNote: "نسخ الرابط"
+      });
+    } catch (e) {
+      alert("رابط التحميل المباشر:\n" + shareData.url);
+    }
+  }
+};
+
+window.updateShareCounterDisplay = function() {
+  const count = parseInt(localStorage.getItem('tahwesha_share_count') || '0');
+  setElText('userShareCount', count);
+};
 
 // ---------------- MOBILE & DESKTOP FLOATING HEADS-UP NOTIFICATIONS ---------------- //
 // إشعارات عائمة على شاشة الموبايل حتى لو الشاشة مقفولة أو التطبيق في الخلفية مثل الواتساب

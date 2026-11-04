@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تحويشة استغفار - بركة الذكر وسعة الرزق وإدارة الميزانية الذكية</title>
+  <meta name="description" content="تطبيق تحويشة استغفار: التطبيق الإسلامي المالي الأول الذي يجمع بين تنبيهات الأذكار العائمة على شاشة القفل، ومواقيت الصلاة الفلكية، وإدارة المصاريف والجمعيات، وتنبيهات رخص السيارات. مجاني 100% وبدون إعلانات.">
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="تحويشة استغفار - التطبيق الإسلامي المالي الأول">
+  <meta property="og:description" content="تنبيهات أذكار عائمة على شاشة القفل، مواقيت الصلاة بالثانية، إدارة الميزانية والجمعيات، وتنبيهات رخص السيارات. مجاني لوجه الله.">
+  <meta property="og:image" content="facebook_promo_banner.jpg">
+
+  <!-- Google Fonts & Tailwind & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+            quran: ['Amiri', 'serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            gold: {
+              300: '#fde047',
+              400: '#facc15',
+              500: '#eab308',
+              600: '#ca8a04',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030a08;
+      color: #f1f5f9;
+      font-family: 'Cairo', sans-serif;
+    }
+    .glow-gold {
+      filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.35));
+    }
+    .glow-emerald {
+      filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.25));
+    }
+    .gradient-border {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), rgba(234, 179, 8, 0.2), rgba(16, 185, 129, 0.1));
+      padding: 1px;
+      border-radius: 1.5rem;
+    }
+  </style>
+</head>
+<body class="selection:bg-emerald-500 selection:text-black">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-gradient-to-r from-emerald-950 via-emerald-800 to-emerald-950 text-white text-[11px] sm:text-xs py-2 px-4 text-center font-bold border-b border-emerald-600/30 flex items-center justify-center gap-2">
+    <span>✨ صدقة جارية ومجاني 100% لوجه الله بدون أي إعلانات مزعجة</span>
+    <span class="hidden sm:inline">•</span>
+    <span class="hidden sm:inline text-amber-300">محدث رسمياً بالتوقيت الشتوي في مصر v2.5.2</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 bg-[#030a08]/90 backdrop-blur-md border-b border-emerald-900/40 px-4 sm:px-8 py-3.5 transition-all">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-700 to-emerald-500 p-0.5 shadow-lg shadow-emerald-900/40">
+          <img src="assets/app-icon.png" alt="أيقونة تحويشة استغفار" class="w-full h-full object-cover rounded-[14px]">
+        </div>
+        <div>
+          <span class="text-base sm:text-lg font-black tracking-tight text-white block">تحويشة استغفار</span>
+          <span class="text-[10px] text-emerald-400 font-bold block -mt-0.5">بركة الرزق ونور الاستغفار</span>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-300">
+        <a href="#features" class="hover:text-amber-300 transition-colors">المميزات الذهبية</a>
+        <a href="#prayers" class="hover:text-amber-300 transition-colors">مواقيت الصلاة والقبلة</a>
+        <a href="#financial" class="hover:text-amber-300 transition-colors">الميزانية والتحويشة</a>
+        <a href="#install-guide" class="hover:text-amber-300 transition-colors">طريقة التثبيت</a>
+        <a href="#faq" class="hover:text-amber-300 transition-colors">الأسئلة الشائعة</a>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk" 
+           class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-900/50 flex items-center gap-1.5 active:scale-95 transition-all">
+          <i class="fa-solid fa-download"></i>
+          <span>تحميل APK (4.2MB)</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="relative pt-12 pb-20 px-4 sm:px-8 overflow-hidden">
+    <!-- Ambient Glows -->
+    <div class="absolute top-1/4 right-1/2 translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/3 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
+      
+      <!-- Left (Text Info) -->
+      <div class="flex-1 text-center lg:text-right space-y-6">
+        
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold shadow-inner">
+          <span class="animate-pulse">🟢</span>
+          <span>الإصدار الرسمي الأحدث v2.5.2 متاح للتحميل مجاناً</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.2] tracking-tight">
+          بَرَكَةُ الذِّكْرِ وَسَعَةُ الرِّزْقِ.. <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-emerald-300 to-teal-200">
+            فِي تـَطـْبـِيقٍ وَاحـِدٍ شـَامـِل
+          </span>
+        </h1>
+
+        <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+          التطبيق الأول من نوعه الذي يجمع لك بين <strong>تنبيهات الاستغفار والقرآن العائمة</strong> على شاشة الموبايل حتى لو الشاشة مقفولة، و<strong>مواقيت الصلاة الفلكية والقبلة</strong>، و<strong>الميزانية الذكية والجمعيات والأقساط</strong>، مع <strong>تنبيهات رخص السيارات</strong> قبل موعد تجديدها.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+          <a href="https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk" 
+             class="w-full sm:w-auto px-7 py-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:brightness-110 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-emerald-950/80 flex items-center justify-center gap-2.5 active:scale-95 transition-all">
+            <i class="fa-solid fa-download text-lg"></i>
+            <span>تحميل التطبيق للأندرويد مجاناً</span>
+          </a>
+
+          <a href="index.html" 
+             class="w-full sm:w-auto px-6 py-4 bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold text-sm sm:text-base rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <i class="fa-solid fa-globe text-emerald-400"></i>
+            <span>فتح النسخة الفورية أونلاين (PWA)</span>
+          </a>
+        </div>
+
+        <!-- Badges -->
+        <div class="flex items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-3 text-[11px] text-slate-400 font-bold flex-wrap">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-400"></i> آمن وموثق 100%</span>
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-hand-holding-dollar text-gold-400"></i> مجاني تماماً لوجه الله</span>
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-ban text-red-400"></i> بدون إعلانات إطلاقاً</span>
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-feather-pointed text-cyan-400"></i> حجم خفيف (4.2 ميجا)</span>
+        </div>
+
+      </div>
+
+      <!-- Right (3D Visual Showcase) -->
+      <div class="flex-1 max-w-md w-full relative">
+        <div class="gradient-border shadow-2xl glow-emerald">
+          <div class="bg-[#05130f] rounded-[1.45rem] p-3 overflow-hidden">
+            <img src="facebook_promo_banner.jpg" alt="تطبيق تحويشة استغفار" class="w-full h-auto rounded-xl object-cover shadow-2xl">
+          </div>
+        </div>
+
+        <!-- Floating Stat 1 -->
+        <div class="absolute -bottom-5 -right-4 sm:-right-8 bg-slate-900/95 border border-emerald-500/40 p-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-lg">
+            📿
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold">تنبيهات عائمة</span>
+            <span class="text-xs font-black text-white">كل 30 دقيقة استغفار</span>
+          </div>
+        </div>
+
+        <!-- Floating Stat 2 -->
+        <div class="absolute -top-4 -left-4 sm:-left-6 bg-slate-900/95 border border-gold-500/40 p-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center text-lg">
+            💰
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold">الميزانية الذكية</span>
+            <span class="text-xs font-black text-white">تتبع أقساطك وجمعياتك</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- 4 Pillars Section -->
+  <section id="features" class="py-20 px-4 sm:px-8 bg-gradient-to-b from-[#030a08] via-slate-950 to-[#030a08] border-y border-emerald-950/60">
+    <div class="max-w-6xl mx-auto space-y-12">
+      
+      <div class="text-center space-y-2.5 max-w-2xl mx-auto">
+        <span class="text-xs font-black text-gold-400 tracking-wider uppercase">لماذا تحويشة استغفار؟</span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">أربعة أركان تجمع لك بين بركة الدين ونظام الحياة</h2>
+        <p class="text-xs sm:text-sm text-slate-400">صُمم التطبيق ليكون رفيقك اليومي الدائم، يعمل في الخلفية بهدوء وذكاء ليحفظ عليك وقتك، دينك، ومالك.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <!-- Feature 1 -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800 hover:border-emerald-500/50 rounded-3xl p-6 space-y-4 transition-all hover:-translate-y-1 shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center text-2xl">
+            📿
+          </div>
+          <h3 class="text-base font-black text-white">تنبيهات عائمة على شاشة القفل</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            لا داعي لفتح التطبيق! كل 30 دقيقة يظهر إشعار عائم منبثق بصوت هادئ يذكرك بالاستغفار، وكل 60 دقيقة 5 آيات من القرآن، وكل 90 دقيقة دعاء بالاسم لوالديك أو لمن تحب من المتوفين.
+          </p>
+          <div class="text-[10px] text-emerald-400 font-bold flex items-center gap-1 pt-2 border-t border-slate-800">
+            <i class="fa-solid fa-bell"></i> يعمل حتى لو الموبايل مقفول
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800 hover:border-gold-500/50 rounded-3xl p-6 space-y-4 transition-all hover:-translate-y-1 shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center text-2xl">
+            🕌
+          </div>
+          <h3 class="text-base font-black text-white">مواقيت الصلاة وبوصلة القبلة</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            حساب فلكي دقيق بالدقيقة والثانية بمعايير الهيئة المصرية للمساحة، مع زر للتبديل الفوري بين التوقيت الشتوي والصيفي في مصر، عداد تنازلي للأذان، وبوصلة حية نحو الكعبة المشرفة.
+          </p>
+          <div class="text-[10px] text-amber-400 font-bold flex items-center gap-1 pt-2 border-t border-slate-800">
+            <i class="fa-solid fa-compass"></i> دقة التوقيت الشتوي (GMT+2)
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800 hover:border-blue-500/50 rounded-3xl p-6 space-y-4 transition-all hover:-translate-y-1 shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-300 border border-blue-500/40 flex items-center justify-center text-2xl">
+            💰
+          </div>
+          <h3 class="text-base font-black text-white">الميزانية الذكية والأقساط</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            سجل مصاريفك ودخلك اليومي بضغطة زر، تتبع أقساطك ومواعيد سدادها، ونظّم جمعياتك وشهر قبضك، وتابع ديونك ومستحقاتك الخارجية مع قفل الأمان بالبصمة ورمز PIN لحماية خصوصيتك.
+          </p>
+          <div class="text-[10px] text-blue-400 font-bold flex items-center gap-1 pt-2 border-t border-slate-800">
+            <i class="fa-solid fa-fingerprint"></i> أمان مالي مشفر بالبصمة
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-gradient-to-b from-slate-900/90 to-slate-950 border border-slate-800 hover:border-yellow-500/50 rounded-3xl p-6 space-y-4 transition-all hover:-translate-y-1 shadow-lg">
+          <div class="w-12 h-12 rounded-2xl bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 flex items-center justify-center text-2xl">
+            🚗
+          </div>
+          <h3 class="text-base font-black text-white">منبه رخص السيارات والمركبات</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            سجل تاريخ انتهاء رخصة سيارتك أو دراجتك، والتطبيق سيحسب لك الأيام المتبقية وينبهك قبل الانتهاء بشهر لتجهيز الفحص والتجديد لتفادي غرامات المرور وسحب اللوحات.
+          </p>
+          <div class="text-[10px] text-yellow-400 font-bold flex items-center gap-1 pt-2 border-t border-slate-800">
+            <i class="fa-solid fa-car-side"></i> عداد تنازلي دقيق باليوم
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Live Simulation Widget -->
+  <section id="prayers" class="py-16 px-4 sm:px-8">
+    <div class="max-w-4xl mx-auto bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-600/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-emerald-900/60">
+        <div class="text-center sm:text-right">
+          <div class="flex items-center justify-center sm:justify-start gap-2">
+            <span class="text-xl">🕌</span>
+            <h3 class="text-lg font-black text-white">مواقيت الصلاة اليوم حسب توقيت القاهرة</h3>
+          </div>
+          <p class="text-xs text-emerald-300/80 mt-1">الهيئة المصرية العامة للمساحة • التوقيت الشتوي الرسمي ❄️ (GMT+2)</p>
+        </div>
+
+        <div class="px-4 py-2 bg-slate-950 border border-emerald-500/40 rounded-2xl text-center">
+          <span class="text-[10px] text-slate-400 block font-bold">صلاة العشاء بعد</span>
+          <span class="text-base font-black text-amber-300 font-mono" id="webDemoCountdown">00:28:40</span>
+        </div>
+      </div>
+
+      <!-- Prayer Times Display Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-center text-xs">
+        <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl">
+          <span class="text-base block">🌅</span>
+          <span class="font-bold text-white block mt-1">الفجر</span>
+          <span class="font-mono text-amber-300 font-bold">04:43 ص</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl">
+          <span class="text-base block">☀️</span>
+          <span class="font-bold text-white block mt-1">الشروق</span>
+          <span class="font-mono text-amber-300 font-bold">06:11 ص</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl">
+          <span class="text-base block">🌞</span>
+          <span class="font-bold text-white block mt-1">الظهر</span>
+          <span class="font-mono text-amber-300 font-bold">11:39 ص</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl">
+          <span class="text-base block">🌤️</span>
+          <span class="font-bold text-white block mt-1">العصر</span>
+          <span class="font-mono text-amber-300 font-bold">02:43 م</span>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3 rounded-2xl">
+          <span class="text-base block">🌇</span>
+          <span class="font-bold text-white block mt-1">المغرب</span>
+          <span class="font-mono text-amber-300 font-bold">05:06 م</span>
+        </div>
+        <div class="bg-emerald-950/90 border border-emerald-500/60 p-3 rounded-2xl shadow-md">
+          <span class="text-base block">🌙</span>
+          <span class="font-bold text-emerald-200 block mt-1">العشاء</span>
+          <span class="font-mono text-amber-300 font-black">06:25 م</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Easy Installation Guide -->
+  <section id="install-guide" class="py-16 px-4 sm:px-8 bg-slate-950 border-t border-slate-800/80">
+    <div class="max-w-4xl mx-auto space-y-10">
+      
+      <div class="text-center space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-black text-white">طريقة تثبيت التطبيق في ثوانٍ معدودة 📲</h2>
+        <p class="text-xs sm:text-sm text-slate-400">نظراً لأن التطبيق يتم تحميله مباشرة خارج متجر جوجل بلاي، اتبع هذه الخطوات البسيطة:</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 text-center space-y-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 text-emerald-400 font-black flex items-center justify-center mx-auto text-base">
+            1
+          </div>
+          <h4 class="text-sm font-black text-white">تحميل ملف الـ APK</h4>
+          <p class="text-xs text-slate-300">
+            اضغط على زر تحميل التطبيق في الأعلى، وسيبدأ تنزيل الملف (بحجم 4.2 ميجابايت فقط).
+          </p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 text-center space-y-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 text-emerald-400 font-black flex items-center justify-center mx-auto text-base">
+            2
+          </div>
+          <h4 class="text-sm font-black text-white">الموافقة على التثبيت</h4>
+          <p class="text-xs text-slate-300">
+            عند فتح الملف، اضغط على <strong>«مزيد من التفاصيل / More details»</strong> ثم <strong>«التثبيت على أي حال / Install anyway»</strong>.
+          </p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 text-center space-y-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 text-emerald-400 font-black flex items-center justify-center mx-auto text-base">
+            3
+          </div>
+          <h4 class="text-sm font-black text-white">سماح بالإشعارات</h4>
+          <p class="text-xs text-slate-300">
+            عند فتح التطبيق، اضغط <strong>«سماح» (Allow)</strong> لإذن الإشعارات لتصلك الأذكار العائمة حتى وشاشة هاتفك مقفولة.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-16 px-4 sm:px-8 max-w-4xl mx-auto space-y-8">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl sm:text-3xl font-black text-white">الأسئلة الشائعة حول التطبيق</h2>
+      <p class="text-xs sm:text-sm text-slate-400">إجابات على أهم الاستفسارات التقنية والشرعية</p>
+    </div>
+
+    <div class="space-y-3 text-xs sm:text-sm">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1.5">
+        <h4 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-emerald-400"></i>
+          هل التطبيق مجاني بالكامل؟
+        </h4>
+        <p class="text-slate-300 leading-relaxed">
+          نعم، التطبيق مجاني 100% لوجه الله تعالى كصدقة جارية، ولا يحتوي على أي إعلانات تجارية ولا يطلب أي اشتراكات مدفوعة.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1.5">
+        <h4 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-emerald-400"></i>
+          كيف تظهر الأذكار وشاشة الموبايل مقفولة؟
+        </h4>
+        <p class="text-slate-300 leading-relaxed">
+          يعتمد التطبيق على محرك الإنذارات عالي الأهمية (Android AlarmManager) بنظام Heads-Up، مما يجعله ينبهك بصوت الأذكار المنبثق حتى أثناء نوم الهاتف أو إغلاق التطبيق تماماً من الخلفية.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1.5">
+        <h4 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-emerald-400"></i>
+          هل تعمل بيانات الميزانية والأذكار بدون إنترنت (أوفلاين)؟
+        </h4>
+        <p class="text-slate-300 leading-relaxed">
+          نعم! التطبيق مصمم بمحرك تخزين محلي كامل (Offline-First)، يمكنك تسجيل مصاريفك وأقساطك والتسبيح ومعرفة مواقيت الصلاة في أي مكان حتى بدون توفر اتصال بالإنترنت، وتتم المزامنة السحابية تلقائياً عند عودة الاتصال.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1.5">
+        <h4 class="font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-question text-emerald-400"></i>
+          هل بياناتي وميزانيتي المالية في أمان؟
+        </h4>
+        <p class="text-slate-300 leading-relaxed">
+          نعم، التطبيق مزود بقفل أمان بيومتري (بصمة الإصبع ورمز مرور PIN)، ولا يمكن لأي شخص فتح تفاصيل ميزانيتك أو حساباتك دون بصمتك.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final Viral Call to Action -->
+  <section class="py-16 px-4 sm:px-8 bg-gradient-to-t from-emerald-950 via-slate-950 to-slate-950 border-t border-emerald-900/50">
+    <div class="max-w-3xl mx-auto text-center space-y-6">
+      
+      <div class="w-16 h-16 rounded-3xl bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center text-3xl mx-auto shadow-xl">
+        💚
+      </div>
+
+      <h2 class="text-2xl sm:text-4xl font-black text-white">«الدَّالُّ عَلَى الخَيْرِ كَفَاعِلِهِ»</h2>
+      
+      <p class="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+        اجعل هذا التطبيق صدقة جارية لك ولوالديك، وحمله الآن وشاركه مع كل من تحب ليكون لك أجر كل تسبيحة واستغفار ودعاء.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+        <a href="https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk" 
+           class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-black text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+          <i class="fa-solid fa-download"></i>
+          <span>تحميل مباشر للأندرويد (APK)</span>
+        </a>
+
+        <a href="https://api.whatsapp.com/send?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%20%D9%88%D8%B1%D8%AD%D9%85%D8%A9%20%D8%A7%D9%84%D9%84%D9%87%20%D9%88%D8%A8%D8%B1%D9%83%D8%A7%D8%AA%D9%87%20%F0%9F%92%9A%0A%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%C2%AB%D8%AA%D8%AD%D9%88%D9%8A%D8%B4%D8%A9%20%D8%A7%D8%B3%D8%AA%D8%BA%D9%81%D8%A7%D8%B1%C2%BB%20%D8%A7%D9%84%D8%A5%D8%B3%D9%84%D8%A7%D9%85%D9%8A%20%D8%A7%D9%84%D9%85%D8%A7%D9%84%D9%8A%20%D8%A7%D9%84%D8%A3%D9%88%D9%84%20%D9%84%D8%AA%D9%86%D8%A8%D9%8A%D9%87%D8%A7%D8%AA%20%D8%A7%D9%84%D8%A3%D8%B0%D9%83%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B9%D8%A7%D8%A6%D9%85%D8%A9%20%D8%B9%D9%84%D9%89%20%D8%B4%D8%A7%D8%B4%D8%A9%20%D8%A7%D9%84%D9%82%D9%81%D9%84%20%D9%88%D9%85%D9%88%D8%A7%D9%82%D9%8A%D8%AA%20%D8%A7%D9%84%D8%B5%D9%84%D8%A7%D8%A9%20%D9%88%D8%A7%D9%84%D9%85%D9%8A%D8%B2%D8%A7%D9%86%D9%8A%D8%A9%20%D9%88%D8%B1%D8%AE%D8%B5%20%D8%A7%D9%84%D8%B3%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA.%0A%D8%AD%D9%85%D9%84%D9%87%20%D9%85%D8%AC%D8%A7%D9%86%D8%A7%D9%8B%20%D8%AF%D9%84%D9%88%D9%82%D8%AA%D9%8A%3A%0Ahttps%3A%2F%2Fgithub.com%2Fkhaledelhamady96-cmyk%2Ftahweshat-esteghfar-app%2Fraw%2Fmain%2Ftahweshat-esteghfar.apk" 
+           target="_blank" 
+           class="w-full sm:w-auto px-6 py-4 bg-emerald-800/60 hover:bg-emerald-700 text-emerald-200 border border-emerald-600/40 font-bold text-sm rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>مشاركة عبر واتساب</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 px-4 text-center text-[11px] text-slate-500 border-t border-slate-900 bg-black">
+    <p>جميع الحقوق محفوظة لوجه الله تعالى © 2026 تطبيق «تحويشة استغفار»</p>
+    <p class="mt-1 text-slate-600">بركة الرزق ونور الاستغفار • الإصدار v2.5.2</p>
+  </footer>
+
+  <!-- Sticky Bottom Bar for Mobile -->
+  <div class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-emerald-700/40 p-2.5 backdrop-blur-lg flex items-center gap-2 shadow-2xl">
+    <a href="https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk" 
+       class="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg active:scale-95">
+      <i class="fa-solid fa-download"></i>
+      <span>تحميل التطبيق مجاناً (APK)</span>
+    </a>
+    <a href="https://api.whatsapp.com/send?text=%D8%AA%D8%B7%D8%A8%D9%8A%D9%82%20%D8%AA%D8%AD%D9%88%D9%8A%D8%B4%D8%A9%20%D8%A7%D8%B3%D8%AA%D8%BA%D9%81%D8%A7%D8%B1%3A%20https%3A%2F%2Fgithub.com%2Fkhaledelhamady96-cmyk%2Ftahweshat-esteghfar-app%2Fraw%2Fmain%2Ftahweshat-esteghfar.apk" 
+       target="_blank" 
+       class="px-3.5 py-3 bg-emerald-800 text-emerald-200 border border-emerald-600/50 rounded-xl flex items-center justify-center text-sm active:scale-95">
+      <i class="fa-brands fa-whatsapp"></i>
+    </a>
+  </div>
+
+  <script>
+    // Live countdown simulation on landing page
+    setInterval(() => {
+      const el = document.getElementById('webDemoCountdown');
+      if (!el) return;
+      const now = new Date();
+      const target = new Date();
+      target.setHours(18, 25, 0, 0); // Isha Cairo winter time
+      if (now > target) target.setDate(target.getDate() + 1);
+      const diffSecs = Math.max(0, Math.floor((target - now) / 1000));
+      const hh = Math.floor(diffSecs / 3600);
+      const mm = Math.floor((diffSecs % 3600) / 60);
+      const ss = diffSecs % 60;
+      el.innerText = `${hh < 10 ? '0' : ''}${hh}:${mm < 10 ? '0' : ''}${mm}:${ss < 10 ? '0' : ''}${ss}`;
+    }, 1000);
+  </script>
+
+</body>
+</html>
