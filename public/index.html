@@ -537,6 +537,55 @@
           </button>
         </div>
 
+        <!-- GPS Prayer Times & Live Qibla Direction (مواقيت الصلاة والأذان الموقوت والقبلة) -->
+        <div class="bg-gradient-to-r from-slate-900 via-emerald-950/70 to-slate-900 border border-emerald-500/40 rounded-3xl p-4 sm:p-5 space-y-4 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-emerald-900/50">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-emerald-900/60 flex items-center justify-center text-emerald-300 text-sm border border-emerald-600/40">🕌</span>
+                <h3 class="text-sm sm:text-base font-black text-white">مواقيت الصلاة والأذان الموقوت</h3>
+              </div>
+              <p class="text-[10px] text-emerald-300/80 mt-0.5" id="prayerCityDisplay">مواقيت اليوم بدقة فلكية حسب توقيت القاهرة (الهيئة المصرية للمساحة)</p>
+            </div>
+            
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" onclick="detectUserLocationForPrayer()" class="px-2.5 py-1.5 bg-emerald-800/60 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 border border-emerald-600/40 shadow-sm active:scale-95 transition-all" title="تحديد الموقع الجغرافي عبر GPS">
+                <i class="fa-solid fa-location-crosshairs text-yellow-300"></i>
+                <span>موقعي (GPS)</span>
+              </button>
+              <button type="button" onclick="toggleQiblaCompassModal()" class="px-2.5 py-1.5 bg-amber-900/60 hover:bg-amber-800 text-amber-200 rounded-xl text-[10px] font-bold flex items-center gap-1 border border-amber-600/40 shadow-sm active:scale-95 transition-all" title="اتجاه بوصلة القبلة نحو الكعبة">
+                <i class="fa-solid fa-compass text-amber-300"></i>
+                <span>بوصلة القبلة</span>
+              </button>
+              <button type="button" id="athanSoundToggleBtn" onclick="toggleAthanSoundPreference()" class="px-2.5 py-1.5 bg-slate-800 text-slate-200 rounded-xl text-[10px] font-bold flex items-center gap-1 border border-slate-700" title="تفعيل أو كتم صوت الأذان والتنبيه">
+                <i class="fa-solid fa-volume-high text-emerald-400" id="athanSoundIcon"></i>
+                <span id="athanSoundText">الأذان: مفعل</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Next Prayer Highlight Banner -->
+          <div class="bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 border border-emerald-500/30 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-center sm:text-right shadow-inner">
+            <div class="flex items-center justify-center sm:justify-start gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-2xl text-yellow-300 animate-pulse">
+                ⏳
+              </div>
+              <div>
+                <span class="text-[10px] text-emerald-300 font-bold block">الصلاة القادمة بإذن الله</span>
+                <h4 class="text-base font-black text-white" id="nextPrayerNameText">صلاة العصر</h4>
+              </div>
+            </div>
+            
+            <div class="bg-slate-900/90 border border-emerald-600/40 px-4 py-2 rounded-xl text-center self-center sm:self-auto">
+              <span class="text-[9px] text-slate-400 block font-bold">متبقي على الأذان</span>
+              <div class="text-base font-black text-amber-300 font-mono" id="nextPrayerCountdownText" dir="ltr">00:00:00</div>
+            </div>
+          </div>
+
+          <!-- 6 Prayer Cards Grid (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2" id="prayerTimesGridContainer"></div>
+        </div>
+
       </section>
 
       <!-- ================= TAB 3: FINANCIAL ("تحويشة") ================= -->
@@ -697,34 +746,69 @@
           </div>
         </div>
 
-        <!-- AI Financial Advisor & Month-End Analytics -->
-        <div class="bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 border border-purple-500/40 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/10">
+        <!-- Advanced Financial Analytics & Savings Projection Dashboard -->
+        <div class="bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-900 border border-emerald-500/40 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-emerald-900/50">
             <div>
-              <span class="px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 text-[10px] font-bold border border-purple-800/50">
-                تقرير نهاية الشهر بالذكاء الاصطناعي
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] font-bold border border-emerald-800/60">
+                لوحة التحليلات والميزانية الذكية 📊
               </span>
-              <h3 class="text-base font-black text-white mt-1">كيف توفر وأين تستثمر الفائض؟</h3>
+              <h3 class="text-base font-black text-white mt-1">توزيع الميزانية ومؤشر الصحة المالية</h3>
             </div>
-            <button onclick="refreshAiAnalysis()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold flex items-center gap-1 shrink-0 self-start sm:self-auto">
-              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> تحديث التحليل
+            <button onclick="refreshAiAnalysis()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shrink-0 self-start sm:self-auto shadow active:scale-95 transition-all">
+              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> تحديث التحليلات
             </button>
           </div>
 
+          <!-- Top Row: Financial Health Score & 6-12 Months Projection -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Health Score Card -->
+            <div class="bg-slate-950/90 border border-emerald-800/40 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-900/50 border border-emerald-600/50 flex flex-col items-center justify-center shrink-0">
+                <span class="text-lg font-black text-emerald-300 font-mono" id="financialHealthScoreText">85%</span>
+                <span class="text-[8px] text-slate-400">مؤشر</span>
+              </div>
+              <div class="space-y-1">
+                <div class="text-xs font-bold text-white" id="financialHealthTitle">الوضع المالي: مستقر وممتاز 🟢</div>
+                <p class="text-[10px] text-slate-400 leading-relaxed" id="financialHealthDesc">نسبة الادخار والتحويشة الصافية تغطي كافة التزاماتك بأمان وبركة.</p>
+              </div>
+            </div>
+
+            <!-- Savings Projection Card -->
+            <div class="bg-slate-950/90 border border-gold-800/40 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm">
+              <div class="w-14 h-14 rounded-2xl bg-amber-950/50 border border-gold-600/50 flex flex-col items-center justify-center shrink-0 text-xl text-gold-400">
+                💰
+              </div>
+              <div class="space-y-1">
+                <div class="text-xs font-bold text-gold-300">توقعات تحويشة الاستغفار المباركة</div>
+                <div class="text-[11px] text-slate-300 flex items-center gap-3 font-mono">
+                  <span>بعد 6 أشهر: <b class="text-emerald-400" id="proj6Months">0 ج</b></span>
+                  <span>سنة: <b class="text-amber-400" id="proj1Year">0 ج</b></span>
+                </div>
+                <div class="text-[9px] text-slate-500">﴿ فَقُلْتُ اسْتَغْفِرُوا رَبَّكُمْ إِنَّهُ كَانَ غَفَّارًا ۝ يُرْسِلِ السَّمَاءَ عَلَيْكُم مِّدْرَارًا ﴾</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Chart & Recommendations -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <!-- Pie Chart -->
+            <!-- Donut / Pie Chart (Works 100% Offline) -->
             <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center">
-              <span class="text-[11px] font-bold text-slate-300 mb-2">توزيع المصروفات</span>
-              <div class="w-full max-w-[200px] h-[190px] relative">
-                <canvas id="expensesPieChart"></canvas>
+              <span class="text-[11px] font-bold text-slate-300 mb-2">مخطط توزيع الميزانية</span>
+              <div class="w-full max-w-[200px] h-[190px] relative flex items-center justify-center">
+                <canvas id="expensesPieChart" class="w-full h-full"></canvas>
+                <div id="chartCenterText" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <span class="text-[9px] text-slate-400">التحويشة</span>
+                  <span class="text-xs font-black text-emerald-400 font-mono" id="donutSavingsText">--</span>
+                </div>
               </div>
             </div>
 
             <!-- Recommendations to cut expenses -->
             <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
               <span class="text-xs font-bold text-gold-300 flex items-center gap-1">
-                <i class="fa-solid fa-scissors"></i> اقتراحات لتقليل النفقات
+                <i class="fa-solid fa-scissors"></i> اقتراحات ذكية لتقليل النفقات
               </span>
               <div id="aiRecommendationsList" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
             </div>
@@ -732,7 +816,7 @@
             <!-- Investment Proposals -->
             <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
               <span class="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                <i class="fa-solid fa-arrow-trend-up"></i> عروض استثمار الفائض
+                <i class="fa-solid fa-arrow-trend-up"></i> مقترحات استثمار الفائض
               </span>
               <div id="aiInvestmentList" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
             </div>
@@ -1168,30 +1252,43 @@
         <p class="text-xs text-slate-300 mt-1">أدخل رمز التحقق السري المكون من 6 أرقام لتأكيد حسابك</p>
       </div>
 
-      <div class="bg-slate-950/90 border border-brand-700/50 p-3 rounded-2xl text-xs text-slate-300 space-y-1.5">
+      <div class="bg-slate-950/90 border border-brand-700/50 p-3 rounded-2xl text-xs text-slate-300 space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-brand-400 font-bold flex items-center gap-1">
-            <i class="fa-solid fa-shield-check text-emerald-400"></i> رمز التفعيل الفوري
+            <i class="fa-solid fa-shield-check text-emerald-400"></i> رمز التحقق الذكي (OTP)
           </span>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-800/50">كود سريع</span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 text-[10px] font-mono font-bold border border-emerald-800/50">آمن ومشفر</span>
         </div>
+        
         <p class="text-[11px] text-slate-300 leading-relaxed" id="otpTargetEmailText">
-          رمز تفعيل الحساب المباشر هو: <span class="text-gold-300 font-mono font-bold text-sm bg-slate-900 px-2 py-0.5 rounded border border-gold-500/30">123456</span>
+          رمز تفعيل حسابك هو: <span class="text-gold-300 font-mono font-black text-base bg-slate-900 px-2.5 py-0.5 rounded border border-gold-500/40" id="otpCodeDisplay">123456</span>
         </p>
-        <p class="text-[10px] text-slate-400">اضغط على الزر بالأسفل لتأكيد الحساب والدخول فوراً.</p>
+
+        <!-- WhatsApp & Copy Fast Actions -->
+        <div class="grid grid-cols-2 gap-1.5 pt-1">
+          <button type="button" onclick="sendOtpViaWhatsApp()" class="py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow active:scale-95 transition-all">
+            <i class="fa-brands fa-whatsapp text-xs"></i>
+            <span>إرسال بالواتساب 💬</span>
+          </button>
+          <button type="button" onclick="copyOtpCode()" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 active:scale-95 transition-all">
+            <i class="fa-regular fa-copy text-xs"></i>
+            <span>نسخ الكود 📋</span>
+          </button>
+        </div>
       </div>
 
-      <form onsubmit="handleOtpSubmit(event)" class="space-y-3">
+      <form onsubmit="handleOtpSubmit(event)" class="space-y-2.5">
         <input type="text" id="otpInput" maxlength="6" value="123456" placeholder="123456" required class="w-full text-center text-xl font-mono tracking-widest bg-slate-950 border border-emerald-500/50 rounded-xl py-2.5 text-gold-300 font-bold focus:outline-none">
         <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-brand-600 hover:from-emerald-500 hover:to-brand-500 text-white text-xs font-black rounded-xl shadow-lg shadow-brand-600/30 active:scale-95 transition-all">
           تأكيد التفعيل والدخول الفوري ⚡
         </button>
       </form>
 
-      <div class="text-center pt-1">
-        <button type="button" onclick="resendOtpCode()" class="text-[11px] text-brand-400 hover:text-brand-300 underline font-semibold">
-          لم يصلك الرمز؟ إعادة إرسال كود التفعيل للإيميل
+      <div class="flex items-center justify-between text-[11px] pt-1 text-slate-400">
+        <button type="button" id="resendOtpBtn" onclick="resendOtpCode()" class="text-brand-400 hover:text-brand-300 underline font-semibold">
+          إعادة إرسال الرمز
         </button>
+        <span id="otpCountdownTimer" class="font-mono text-[10px] text-slate-500">متاح بعد (60ث)</span>
       </div>
     </div>
   </div>
@@ -1221,11 +1318,32 @@
           <input type="password" id="profPassword" placeholder="اتركه فارغاً لعدم التغيير" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
         </div>
 
+        <!-- Security Lock Setting (Biometric & PIN) -->
+        <div class="bg-slate-950 border border-brand-800/50 p-3 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-fingerprint text-brand-400 text-base"></i>
+              <div>
+                <span class="text-xs font-bold text-white block">قفل الأمان بالبصمة / PIN</span>
+                <span class="text-[9px] text-slate-400">حماية الحساب والميزانية عند فتح التطبيق</span>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="securityLockToggle" onchange="handleSecurityLockToggle(this.checked)" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+          <div id="pinSettingsContainer" class="hidden pt-1 border-t border-slate-800 flex items-center justify-between text-[10px]">
+            <span class="text-slate-400">رمز المرور: <b class="font-mono text-gold-300" id="currentPinPreview">****</b></span>
+            <button type="button" onclick="promptChangePin()" class="text-brand-400 hover:text-brand-300 font-bold underline">تغيير رمز الـ PIN</button>
+          </div>
+        </div>
+
         <!-- In-App Updates Check Card in Profile -->
         <div class="bg-slate-950 border border-brand-800/40 p-2.5 rounded-2xl flex items-center justify-between">
           <div>
             <span class="text-[11px] font-bold text-white block">تحديثات التطبيق السحابية</span>
-            <span class="text-[9px] text-slate-400" id="profileAppVersionText">الإصدار الحالي: v2.0.0</span>
+            <span class="text-[9px] text-slate-400" id="profileAppVersionText">الإصدار الحالي: v2.4.0</span>
           </div>
           <button type="button" onclick="checkForAppUpdates(false)" class="px-2.5 py-1 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 active:scale-95 transition-all">
             <i class="fa-solid fa-arrows-rotate"></i>
@@ -1676,5 +1794,89 @@
   <script src="firebaseService.js"></script>
   <script src="embeddedData.js"></script>
   <script src="app.js"></script>
+
+    <!-- ================= FULLSCREEN BIOMETRIC & PIN SECURITY LOCK OVERLAY ================= -->
+    <div id="securityLockOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+      <div class="w-full max-w-xs text-center space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-tr from-brand-700 via-brand-500 to-emerald-400 border-2 border-gold-400 shadow-2xl flex items-center justify-center text-2xl shadow-brand-500/40">
+          <i class="fa-solid fa-shield-halved text-white"></i>
+        </div>
+
+        <div>
+          <h2 class="text-base font-black text-white">قفل الأمان المالي</h2>
+          <p class="text-xs text-slate-400 mt-0.5">أدخل رمز الـ PIN أو استخدم البصمة لفتح حساباتك</p>
+        </div>
+
+        <!-- 4 PIN Dots -->
+        <div class="flex items-center justify-center gap-3 py-1">
+          <div class="w-3.5 h-3.5 rounded-full border-2 border-brand-500 pin-dot transition-all" id="pinDot0"></div>
+          <div class="w-3.5 h-3.5 rounded-full border-2 border-brand-500 pin-dot transition-all" id="pinDot1"></div>
+          <div class="w-3.5 h-3.5 rounded-full border-2 border-brand-500 pin-dot transition-all" id="pinDot2"></div>
+          <div class="w-3.5 h-3.5 rounded-full border-2 border-brand-500 pin-dot transition-all" id="pinDot3"></div>
+        </div>
+
+        <!-- Numeric Keypad -->
+        <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto text-base font-black font-mono">
+          <button type="button" onclick="handlePinKey('1')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">1</button>
+          <button type="button" onclick="handlePinKey('2')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">2</button>
+          <button type="button" onclick="handlePinKey('3')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">3</button>
+          <button type="button" onclick="handlePinKey('4')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">4</button>
+          <button type="button" onclick="handlePinKey('5')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">5</button>
+          <button type="button" onclick="handlePinKey('6')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">6</button>
+          <button type="button" onclick="handlePinKey('7')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">7</button>
+          <button type="button" onclick="handlePinKey('8')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">8</button>
+          <button type="button" onclick="handlePinKey('9')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">9</button>
+          <button type="button" onclick="tryBiometricUnlock()" class="h-12 rounded-2xl bg-brand-950 hover:bg-brand-900 text-brand-300 border border-brand-800/60 active:scale-95 transition-all shadow flex items-center justify-center text-lg" title="فتح بالبصمة / FaceID">
+            <i class="fa-solid fa-fingerprint"></i>
+          </button>
+          <button type="button" onclick="handlePinKey('0')" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 active:scale-95 transition-all shadow">0</button>
+          <button type="button" onclick="handlePinBackspace()" class="h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-red-400 border border-slate-800 active:scale-95 transition-all shadow flex items-center justify-center text-sm" title="مسح">
+            <i class="fa-solid fa-delete-left"></i>
+          </button>
+        </div>
+
+        <div id="pinErrorMessage" class="text-xs text-red-400 font-bold min-h-[16px]"></div>
+      </div>
+    </div>
+
+    <!-- ================= QIBLA COMPASS MODAL ================= -->
+    <div id="qiblaCompassModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div class="bg-slate-900 border border-amber-600/50 rounded-3xl w-full max-w-sm p-5 shadow-2xl text-center space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+          <h3 class="text-sm font-black text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-compass text-amber-400"></i> بوصلة اتجاه القبلة نحو الكعبة
+          </h3>
+          <button onclick="toggleQiblaCompassModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+
+        <div class="relative w-44 h-44 mx-auto my-2 flex items-center justify-center">
+          <div class="w-full h-full rounded-full border-4 border-amber-600/40 bg-slate-950 flex items-center justify-center shadow-2xl relative transition-transform duration-300" id="qiblaDial">
+            <span class="absolute top-2 text-[10px] font-black text-red-400 font-mono">N (شمال)</span>
+            <span class="absolute bottom-2 text-[10px] font-bold text-slate-500 font-mono">S (جنوب)</span>
+            <span class="absolute right-2 text-[10px] font-bold text-slate-500 font-mono">E (شرق)</span>
+            <span class="absolute left-2 text-[10px] font-bold text-slate-500 font-mono">W (غرب)</span>
+            
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none transition-transform duration-300" id="qiblaNeedle">
+              <div class="w-2 h-16 bg-gradient-to-t from-transparent via-amber-400 to-amber-500 rounded-t-full shadow-lg relative -top-6 flex flex-col items-center">
+                <span class="text-sm -mt-2.5">🕋</span>
+              </div>
+            </div>
+            
+            <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-[8px] font-bold text-amber-300">
+              مكة
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl space-y-1">
+          <div class="text-xs font-bold text-white">زاوية القبلة: <span class="text-amber-300 font-mono font-bold" id="qiblaAngleText">136°</span> جنوب شرق</div>
+          <p class="text-[10px] text-slate-400" id="qiblaDistanceText">المسافة إلى المسجد الحرام بمكة المكرمة: حوالي 1,280 كم</p>
+        </div>
+
+        <button type="button" onclick="toggleQiblaCompassModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl">
+          إغلاق البوصلة
+        </button>
+      </div>
+    </div>
 </body>
 </html>

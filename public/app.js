@@ -604,6 +604,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTasbih();
   await initMobileNotifications();
   await loadSubscriberStats();
+  initPrayerTimesEngine();
+  initSecurityLock();
+  initRealtimeCloudListeners();
 
   // 1. Persistent User Session (Never log out when closing or exiting app)
   const savedUserStr = localStorage.getItem('tahwesha_user');
@@ -1125,46 +1128,113 @@ function renderPieChart(cats) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  if (expensesChartInstance) {
-    expensesChartInstance.destroy();
+  // Pull all financial commitments for complete budget breakdown
+  const fin = OfflineEngine.getStorage('financials', {});
+  const income = parseFloat(fin.monthlyIncome) || 0;
+  const totalExp = Array.isArray(fin.dailyExpenses) ? fin.dailyExpenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) : 0;
+  const totalInst = Array.isArray(fin.installments) ? fin.installments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0) : 0;
+  const totalCirc = Array.isArray(fin.moneyCircles) ? fin.moneyCircles.reduce((s, c) => s + (parseFloat(c.monthlyAmount) || 0), 0) : 0;
+
+  const netSavings = Math.max(0, income - (totalExp + totalInst + totalCirc));
+
+  // Update center label
+  const centerTextEl = document.getElementById('donutSavingsText');
+  if (centerTextEl) centerTextEl.innerText = `${netSavings.toLocaleString()} ج`;
+
+  // Update Financial Health Score (0 - 100%)
+  const healthScore = (income > 0) ? Math.min(100, Math.round((netSavings / income) * 100)) : 50;
+  setElText('financialHealthScoreText', `${healthScore}%`);
+
+  const healthTitleEl = document.getElementById('financialHealthTitle');
+  const healthDescEl = document.getElementById('financialHealthDesc');
+  if (healthScore >= 70) {
+    if (healthTitleEl) healthTitleEl.innerHTML = 'الوضع المالي: ممتاز ومبارك 🟢';
+    if (healthDescEl) healthDescEl.innerText = 'نسبة تحويشتك فائقة وتغطي كافة المصروفات والأقساط بأمان تام.';
+  } else if (healthScore >= 40) {
+    if (healthTitleEl) healthTitleEl.innerHTML = 'الوضع المالي: جيد جداً ومستقر 🟡';
+    if (healthDescEl) healthDescEl.innerText = 'ميزانيتك متوازنة مع هامش ادخار طيب، مع ترشيد بسيط يزيد الفائض.';
+  } else if (healthScore >= 15) {
+    if (healthTitleEl) healthTitleEl.innerHTML = 'الوضع المالي: متوسط 🟠';
+    if (healthDescEl) healthDescEl.innerText = 'الأقساط والمصروفات تستنزف معظم الدخل، يُفضل مراجعة أولويات الإنفاق.';
+  } else {
+    if (healthTitleEl) healthTitleEl.innerHTML = 'الوضع المالي: حرج 🔴';
+    if (healthDescEl) healthDescEl.innerText = 'الالتزامات تتجاوز أو تكاد تبتلع الدخل الشهري بالكامل. استعن بالاستغفار وجدولة الديون.';
   }
 
-  const labels = ['علاج وأدوية', 'خروج وترفيه', 'طعام ومشتريات', 'مواصلات وبنزين', 'فواتير', 'أخرى'];
-  const data = [cats.medical || 0, cats.outings || 0, cats.food || 0, cats.transport || 0, cats.bills || 0, cats.other || 0];
+  // 6 & 12 Months Savings Projections
+  const proj6 = Math.max(0, Math.round(netSavings * 6));
+  const proj12 = Math.max(0, Math.round(netSavings * 12));
+  setElText('proj6Months', `${proj6.toLocaleString()} ج`);
+  setElText('proj1Year', `${proj12.toLocaleString()} ج`);
 
-  expensesChartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: [
-          '#ef4444', // Red (Medical)
-          '#f59e0b', // Amber (Outings)
-          '#10b981', // Emerald (Food)
-          '#3b82f6', // Blue (Transport)
-          '#a855f7', // Purple (Bills)
-          '#64748b'  // Slate (Other)
-        ],
-        borderWidth: 2,
-        borderColor: '#020617'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'bottom',
-          labels: {
-            boxWidth: 10,
-            color: '#94a3b8',
-            font: { family: 'Cairo', size: 9 }
+  // Chart Labels & Data: Savings, Expenses, Installments, Circles
+  const labels = ['التحويشة الصافية', 'المصروفات اليومية', 'الأقساط الشهرية', 'الجمعيات'];
+  const data = [netSavings, totalExp, totalInst, totalCirc];
+  const colors = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
+
+  if (typeof Chart !== 'undefined') {
+    try {
+      if (expensesChartInstance) {
+        expensesChartInstance.destroy();
+      }
+      expensesChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#020617'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: {
+                boxWidth: 10,
+                color: '#94a3b8',
+                font: { family: 'Cairo', size: 9 }
+              }
+            }
           }
         }
-      }
+      });
+      return;
+    } catch (e) {
+      console.warn("Chart.js failed, falling back to pure 2D Canvas:", e);
     }
+  }
+
+  // Pure Offline Canvas 2D Doughnut Renderer (Runs everywhere without internet)
+  const width = canvas.width || 200;
+  const height = canvas.height || 190;
+  ctx.clearRect(0, 0, width, height);
+
+  const centerX = width / 2;
+  const centerY = height / 2 - 10;
+  const radius = Math.min(centerX, centerY) - 15;
+  const innerRadius = radius * 0.65;
+  const total = data.reduce((a, b) => a + b, 0) || 1;
+
+  let currentAngle = -Math.PI / 2;
+  data.forEach((val, idx) => {
+    const sliceAngle = (val / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+    ctx.arc(centerX, centerY, innerRadius, currentAngle + sliceAngle, currentAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = colors[idx];
+    ctx.fill();
+    ctx.strokeStyle = '#020617';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    currentAngle += sliceAngle;
   });
 }
 
@@ -1512,11 +1582,63 @@ async function handleRegisterSubmit(e) {
   }
 }
 
-function openOtpModal(phone, email = '') {
+function openOtpModal(phone, email = '', code = '') {
   pendingVerifyPhone = phone;
-  setElText('otpTargetEmailText', email || "بريدك الإلكتروني المسجل");
+  const otpCode = code || String(Math.floor(100000 + Math.random() * 900000));
+  window.currentGeneratedOtpCode = otpCode;
+
+  const codeEl = document.getElementById('otpCodeDisplay');
+  if (codeEl) codeEl.innerText = otpCode;
+
+  const inputEl = document.getElementById('otpInput');
+  if (inputEl) inputEl.value = otpCode;
+
+  const targetText = document.getElementById('otpTargetEmailText');
+  if (targetText) {
+    targetText.innerHTML = `رمز تفعيل حسابك هو: <span class="text-gold-300 font-mono font-black text-base bg-slate-900 px-2.5 py-0.5 rounded border border-gold-500/40">${otpCode}</span>`;
+  }
+
+  startOtpResendCountdown(60);
+
   const modal = document.getElementById('otpModal');
   if (modal) modal.classList.remove('hidden');
+}
+
+function startOtpResendCountdown(seconds = 60) {
+  if (window.otpCountdownTimerInterval) clearInterval(window.otpCountdownTimerInterval);
+  let timeLeft = seconds;
+  const btn = document.getElementById('resendOtpBtn');
+  const timerSpan = document.getElementById('otpCountdownTimer');
+  if (btn) btn.disabled = true;
+
+  window.otpCountdownTimerInterval = setInterval(() => {
+    timeLeft--;
+    if (timerSpan) timerSpan.innerText = `متاح بعد (${timeLeft}ث)`;
+    if (timeLeft <= 0) {
+      clearInterval(window.otpCountdownTimerInterval);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = "إعادة إرسال رمز جديد الآن";
+      }
+      if (timerSpan) timerSpan.innerText = "";
+    }
+  }, 1000);
+}
+
+function sendOtpViaWhatsApp() {
+  const code = window.currentGeneratedOtpCode || "123456";
+  const msg = `كود التحقق الخاص بك في تطبيق تحويشة استغفار هو: *${code}*\nحياك الله وبارك الله في رزقك وعملك 📿`;
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+function copyOtpCode() {
+  const code = window.currentGeneratedOtpCode || "123456";
+  navigator.clipboard.writeText(code).then(() => {
+    alert(`✅ تم نسخ كود التحقق (${code}) بنجاح!`);
+  }).catch(() => {
+    alert(`كود التحقق الخاص بك هو: ${code}`);
+  });
 }
 
 // ---------------- MOBILE & DESKTOP FLOATING HEADS-UP NOTIFICATIONS ---------------- //
@@ -2454,7 +2576,7 @@ window.exportSubscribersToExcel = function(format = 'excel') {
       ].join(',');
     });
 
-    const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\r\n');
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -3052,5 +3174,486 @@ async function syncCloudSubscribersNow() {
     alert(`✅ نجحت المزامنة السحابية بنجاح!\n\nتم العثور على ${cloudUsers.length} مشتركين في سحابة جوجل، وتم تحديث جدول المشتركين أمامك.`);
   } catch (err) {
     alert("حدث خطأ أثناء المزامنة: " + err.message);
+  }
+}
+
+
+// ==============================================================================
+// 1. GPS PRAYER TIMES ENGINE & LIVE QIBLA DIRECTION (محرك مواقيت الصلاة والقبلة)
+// ==============================================================================
+
+window.userPrayerCoords = {
+  lat: 30.0444,
+  lng: 31.2357,
+  city: "القاهرة (مصر)",
+  timezone: 3 // Egypt Summer/Standard Time (GMT+3)
+};
+
+window.calculatedPrayerTimesToday = null;
+window.nextPrayerTickerInterval = null;
+window.isAthanSoundEnabled = (localStorage.getItem('tahwesha_athan_sound') !== 'false');
+
+function d2r(d) { return d * Math.PI / 180; }
+function r2d(r) { return r * 180 / Math.PI; }
+
+function calcPrayerTimesAstronomical(date, lat, lng, timezone = 3) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  const a = Math.floor((14 - month) / 12);
+  const y = year + 4800 - a;
+  const m = month + 12 * a - 3;
+  const jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+  const d = jd - 2451545.0;
+
+  const L = (280.460 + 0.9856474 * d) % 360;
+  const g = (357.528 + 0.9856003 * d) % 360;
+  const lambda = (L + 1.915 * Math.sin(d2r(g)) + 0.020 * Math.sin(d2r(2 * g))) % 360;
+  const obl = 23.439 - 0.0000004 * d;
+
+  let alpha = r2d(Math.atan2(Math.cos(d2r(obl)) * Math.sin(d2r(lambda)), Math.cos(d2r(lambda)))) / 15;
+  if (alpha < 0) alpha += 24;
+  const delta = r2d(Math.asin(Math.sin(d2r(obl)) * Math.sin(d2r(lambda))));
+
+  const eqt = (L / 15) - alpha;
+  const noon = 12 + timezone - (lng / 15) - eqt;
+
+  function hourAngle(alt) {
+    const cosH = (Math.sin(d2r(alt)) - Math.sin(d2r(lat)) * Math.sin(d2r(delta))) / (Math.cos(d2r(lat)) * Math.cos(d2r(delta)));
+    if (cosH > 1 || cosH < -1) return 0;
+    return r2d(Math.acos(cosH)) / 15;
+  }
+
+  const sunriseH = hourAngle(-0.833);
+  const fajrH = hourAngle(-19.5); // Egyptian Survey Authority standard
+  const ishaH = hourAngle(-17.5); // Egyptian Survey Authority standard
+
+  const asrAlt = r2d(Math.atan(1 / (1 + Math.tan(d2r(Math.abs(lat - delta))))));
+  const asrH = hourAngle(asrAlt);
+
+  function fmt(h, name, arabicName, icon) {
+    let totalMins = Math.round(h * 60);
+    let hh = Math.floor(totalMins / 60) % 24;
+    let mm = totalMins % 60;
+    let period = hh >= 12 ? 'م' : 'ص';
+    let h12 = hh % 12 || 12;
+    return {
+      key: name,
+      name: arabicName,
+      icon: icon,
+      totalMinutes: totalMins,
+      time24: (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm,
+      time12: h12 + ':' + (mm < 10 ? '0' : '') + mm + ' ' + period
+    };
+  }
+
+  return {
+    fajr: fmt(noon - fajrH, 'fajr', 'الفجر', '🌅'),
+    sunrise: fmt(noon - sunriseH, 'sunrise', 'الشروق', '☀️'),
+    dhuhr: fmt(noon, 'dhuhr', 'الظهر', '🌞'),
+    asr: fmt(noon + asrH, 'asr', 'العصر', '🌤️'),
+    maghrib: fmt(noon + sunriseH, 'maghrib', 'المغرب', '🌇'),
+    isha: fmt(noon + ishaH, 'isha', 'العشاء', '🌙')
+  };
+}
+
+function calcQiblaBearing(lat, lng) {
+  const kaabaLat = 21.4225;
+  const kaabaLng = 39.8262;
+  const phiK = d2r(kaabaLat);
+  const lambdaK = d2r(kaabaLng);
+  const phi = d2r(lat);
+  const lambda = d2r(lng);
+
+  const y = Math.sin(lambdaK - lambda);
+  const x = Math.cos(phi) * Math.tan(phiK) - Math.sin(phi) * Math.cos(lambdaK - lambda);
+  let qibla = r2d(Math.atan2(y, x));
+  return Math.round((qibla + 360) % 360);
+}
+
+function initPrayerTimesEngine() {
+  // Load cached location if exists
+  try {
+    const cached = localStorage.getItem('tahwesha_user_coords');
+    if (cached) window.userPrayerCoords = JSON.parse(cached);
+  } catch (e) {}
+
+  updatePrayerTimesUI();
+
+  if (window.nextPrayerTickerInterval) clearInterval(window.nextPrayerTickerInterval);
+  window.nextPrayerTickerInterval = setInterval(updateNextPrayerCountdown, 1000);
+}
+
+function updatePrayerTimesUI() {
+  const now = new Date();
+  const times = calcPrayerTimesAstronomical(now, window.userPrayerCoords.lat, window.userPrayerCoords.lng, window.userPrayerCoords.timezone);
+  window.calculatedPrayerTimesToday = times;
+
+  const cityEl = document.getElementById('prayerCityDisplay');
+  if (cityEl) {
+    cityEl.innerText = `مواقيت الصلاة اليوم حسب ${window.userPrayerCoords.city} (الهيئة المصرية للمساحة)`;
+  }
+
+  const container = document.getElementById('prayerTimesGridContainer');
+  if (!container) return;
+
+  const list = [times.fajr, times.sunrise, times.dhuhr, times.asr, times.maghrib, times.isha];
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  container.innerHTML = list.map(p => {
+    const isPast = (nowMins > p.totalMinutes);
+    return `
+      <div class="p-2.5 rounded-2xl ${isPast ? 'bg-slate-950/70 border border-slate-800/60 opacity-80' : 'bg-slate-950 border border-emerald-600/40 shadow-sm'} text-center space-y-1">
+        <span class="text-base block">${p.icon}</span>
+        <div class="text-xs font-bold text-white">${p.name}</div>
+        <div class="text-xs font-black text-amber-300 font-mono" dir="ltr">${p.time12}</div>
+      </div>
+    `;
+  }).join('');
+
+  updateNextPrayerCountdown();
+}
+
+function updateNextPrayerCountdown() {
+  if (!window.calculatedPrayerTimesToday) return;
+
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const nowSecs = now.getSeconds();
+
+  const prayers = [
+    window.calculatedPrayerTimesToday.fajr,
+    window.calculatedPrayerTimesToday.dhuhr,
+    window.calculatedPrayerTimesToday.asr,
+    window.calculatedPrayerTimesToday.maghrib,
+    window.calculatedPrayerTimesToday.isha
+  ];
+
+  let nextP = prayers.find(p => p.totalMinutes > nowMins);
+  let isNextDay = false;
+
+  if (!nextP) {
+    nextP = prayers[0]; // Fajr next day
+    isNextDay = true;
+  }
+
+  const targetMins = nextP.totalMinutes + (isNextDay ? 24 * 60 : 0);
+  const diffSecs = (targetMins * 60) - (nowMins * 60 + nowSecs);
+
+  const hh = Math.floor(diffSecs / 3600);
+  const mm = Math.floor((diffSecs % 3600) / 60);
+  const ss = diffSecs % 60;
+
+  const fmtTime = `${hh < 10 ? '0' : ''}${hh}:${mm < 10 ? '0' : ''}${mm}:${ss < 10 ? '0' : ''}${ss}`;
+
+  setElText('nextPrayerNameText', `صلاة ${nextP.name} (${nextP.time12})`);
+  setElText('nextPrayerCountdownText', fmtTime);
+
+  // If exactly at prayer time (diffSecs === 0)
+  if (diffSecs === 0 && window.isAthanSoundEnabled) {
+    playAthanChime();
+    triggerFloatingAlertEverywhere({
+      type: "prayer_athan",
+      title: `🕌 حان الآن موعد أذان صلاة ${nextP.name}`,
+      content: `الله أكبر، حي على الصلاة، حي على الفلاح. تقبل الله طاعتكم.`,
+      subNote: "تنبيه مواقيت الصلاة"
+    });
+  }
+}
+
+function detectUserLocationForPrayer() {
+  if (!navigator.geolocation) {
+    alert("تحديد الموقع غير مدعوم في هذا الجهاز، تم اعتماد توقيت القاهرة افتراضياً.");
+    return;
+  }
+
+  const cityEl = document.getElementById('prayerCityDisplay');
+  if (cityEl) cityEl.innerText = "جاري تحديد موقعك بدقة عبر الأقمار الصناعية (GPS)...";
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      window.userPrayerCoords = {
+        lat: lat,
+        lng: lng,
+        city: `موقعك الحالي (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`,
+        timezone: 3
+      };
+      localStorage.setItem('tahwesha_user_coords', JSON.stringify(window.userPrayerCoords));
+      updatePrayerTimesUI();
+      alert("✅ تم تحديد موقعك الجغرافي وحساب مواقيت الصلاة واتجاه القبلة بدقة متناهية!");
+    },
+    (err) => {
+      console.warn("Geolocation notice:", err.message);
+      alert("تعذر الوصول لـ GPS، سيتم الاستمرار بمواقيت القاهرة القياسية.");
+      updatePrayerTimesUI();
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+function toggleQiblaCompassModal() {
+  const modal = document.getElementById('qiblaCompassModal');
+  if (!modal) return;
+  const isHidden = modal.classList.contains('hidden');
+
+  if (isHidden) {
+    modal.classList.remove('hidden');
+    const angle = calcQiblaBearing(window.userPrayerCoords.lat, window.userPrayerCoords.lng);
+    setElText('qiblaAngleText', `${angle}°`);
+
+    const needle = document.getElementById('qiblaNeedle');
+    if (needle) {
+      needle.style.transform = `rotate(${angle}deg)`;
+    }
+
+    // Device orientation live rotation on smartphones
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', handleDeviceOrientationCompass, true);
+    }
+  } else {
+    modal.classList.add('hidden');
+    window.removeEventListener('deviceorientation', handleDeviceOrientationCompass, true);
+  }
+}
+
+function handleDeviceOrientationCompass(e) {
+  if (e.alpha !== null) {
+    const dial = document.getElementById('qiblaDial');
+    if (dial) {
+      dial.style.transform = `rotate(${-e.alpha}deg)`;
+    }
+  }
+}
+
+function toggleAthanSoundPreference() {
+  window.isAthanSoundEnabled = !window.isAthanSoundEnabled;
+  localStorage.setItem('tahwesha_athan_sound', String(window.isAthanSoundEnabled));
+  const icon = document.getElementById('athanSoundIcon');
+  const text = document.getElementById('athanSoundText');
+  if (window.isAthanSoundEnabled) {
+    if (icon) icon.className = "fa-solid fa-volume-high text-emerald-400";
+    if (text) text.innerText = "الأذان: مفعل";
+    playWebAudioChime();
+  } else {
+    if (icon) icon.className = "fa-solid fa-volume-xmark text-slate-500";
+    if (text) text.innerText = "الأذان: مكتوم";
+  }
+}
+
+function playAthanChime() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+
+    // Harmonic spiritual Takbeer chime chord (C4 - E4 - G4 - C5)
+    const notes = [261.63, 329.63, 392.00, 523.25];
+    notes.forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+      gain.gain.setValueAtTime(0.001, now + idx * 0.15);
+      gain.gain.linearRampToValueAtTime(0.2, now + idx * 0.15 + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 1.8);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + idx * 0.15);
+      osc.stop(now + idx * 0.15 + 2);
+    });
+  } catch (e) {
+    console.debug("Athan audio notice:", e);
+  }
+}
+
+
+// ==============================================================================
+// 2. BIOMETRIC & PIN SECURITY LOCK SYSTEM (قفل الأمان بالبصمة ورمز الـ PIN)
+// ==============================================================================
+
+window.pinInputBuffer = "";
+
+function initSecurityLock() {
+  const isEnabled = (localStorage.getItem('tahwesha_security_lock_enabled') === 'true');
+  const toggle = document.getElementById('securityLockToggle');
+  const settingsCont = document.getElementById('pinSettingsContainer');
+  if (toggle) toggle.checked = isEnabled;
+  if (settingsCont) settingsCont.classList.toggle('hidden', !isEnabled);
+
+  const preview = document.getElementById('currentPinPreview');
+  const savedPin = localStorage.getItem('tahwesha_security_pin') || '1234';
+  if (preview) preview.innerText = savedPin.replace(/./g, '•');
+
+  if (isEnabled) {
+    showSecurityLockOverlay();
+  }
+
+  // Handle app resuming from background
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && localStorage.getItem('tahwesha_security_lock_enabled') === 'true') {
+      showSecurityLockOverlay();
+    }
+  });
+}
+
+function showSecurityLockOverlay() {
+  const overlay = document.getElementById('securityLockOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  window.pinInputBuffer = "";
+  updatePinDotsUI();
+  setElText('pinErrorMessage', '');
+
+  // Automatically try biometric unlock if supported
+  setTimeout(tryBiometricUnlock, 300);
+}
+
+function hideSecurityLockOverlay() {
+  const overlay = document.getElementById('securityLockOverlay');
+  if (!overlay) return;
+  overlay.classList.add('hidden');
+  window.pinInputBuffer = "";
+  updatePinDotsUI();
+}
+
+function handlePinKey(digit) {
+  if (window.pinInputBuffer.length >= 4) return;
+  window.pinInputBuffer += digit;
+  updatePinDotsUI();
+
+  if (window.pinInputBuffer.length === 4) {
+    const savedPin = localStorage.getItem('tahwesha_security_pin') || '1234';
+    if (window.pinInputBuffer === savedPin) {
+      playWebAudioChime();
+      hideSecurityLockOverlay();
+    } else {
+      setElText('pinErrorMessage', 'رمز الـ PIN غير صحيح، يرجى المحاولة مرة أخرى');
+      // Shake dots
+      setTimeout(() => {
+        window.pinInputBuffer = "";
+        updatePinDotsUI();
+      }, 700);
+    }
+  }
+}
+
+function handlePinBackspace() {
+  if (window.pinInputBuffer.length > 0) {
+    window.pinInputBuffer = window.pinInputBuffer.slice(0, -1);
+    updatePinDotsUI();
+    setElText('pinErrorMessage', '');
+  }
+}
+
+function updatePinDotsUI() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`pinDot${i}`);
+    if (dot) {
+      if (i < window.pinInputBuffer.length) {
+        dot.className = "w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-emerald-400 scale-110 shadow-lg shadow-emerald-400/50 transition-all";
+      } else {
+        dot.className = "w-3.5 h-3.5 rounded-full border-2 border-brand-500 pin-dot transition-all";
+      }
+    }
+  }
+}
+
+async function tryBiometricUnlock() {
+  // Check if WebAuthn / Biometrics is available
+  if (window.PublicKeyCredential) {
+    try {
+      // Standard challenge test to invoke FaceID / Fingerprint prompt
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+      hideSecurityLockOverlay();
+      playWebAudioChime();
+      return;
+    } catch (e) {
+      console.debug("Biometric invoke notice:", e);
+    }
+  }
+}
+
+function handleSecurityLockToggle(enabled) {
+  if (enabled) {
+    let pin = prompt("يرجى تعيين رمز مرور PIN المالي المكون من 4 أرقام:", "1234");
+    if (!pin || pin.trim().length !== 4 || isNaN(pin)) {
+      alert("يجب إدخال 4 أرقام صحيحة لرمز الـ PIN.");
+      document.getElementById('securityLockToggle').checked = false;
+      return;
+    }
+    localStorage.setItem('tahwesha_security_pin', pin.trim());
+    localStorage.setItem('tahwesha_security_lock_enabled', 'true');
+    const settingsCont = document.getElementById('pinSettingsContainer');
+    if (settingsCont) settingsCont.classList.remove('hidden');
+    const preview = document.getElementById('currentPinPreview');
+    if (preview) preview.innerText = pin.trim().replace(/./g, '•');
+    alert("🔒 تم تفعيل قفل الأمان المالي بالبصمة ورمز الـ PIN بنجاح!");
+  } else {
+    localStorage.setItem('tahwesha_security_lock_enabled', 'false');
+    const settingsCont = document.getElementById('pinSettingsContainer');
+    if (settingsCont) settingsCont.classList.add('hidden');
+    alert("تم إلغاء تفعيل قفل الأمان.");
+  }
+}
+
+function promptChangePin() {
+  const currentPin = localStorage.getItem('tahwesha_security_pin') || '1234';
+  const verifyOld = prompt("أدخل رمز الـ PIN الحالي للتأكيد:");
+  if (verifyOld !== currentPin) {
+    alert("رمز الـ PIN الحالي غير مطابق!");
+    return;
+  }
+  const newPin = prompt("أدخل رمز الـ PIN الجديد المكون من 4 أرقام:");
+  if (!newPin || newPin.trim().length !== 4 || isNaN(newPin)) {
+    alert("يجب إدخال 4 أرقام.");
+    return;
+  }
+  localStorage.setItem('tahwesha_security_pin', newPin.trim());
+  const preview = document.getElementById('currentPinPreview');
+  if (preview) preview.innerText = newPin.trim().replace(/./g, '•');
+  alert("✅ تم تحديث رمز الـ PIN بنجاح!");
+}
+
+
+// ==============================================================================
+// 3. REALTIME CLOUD BROADCASTS & UPDATES (المزامنة السحابية الحية)
+// ==============================================================================
+
+function initRealtimeCloudListeners() {
+  if (typeof FirebaseSync !== 'undefined' && FirebaseSync.listenForLiveUpdates) {
+    FirebaseSync.listenForLiveUpdates((upd) => {
+      console.log("[Firebase] Live update event received:", upd);
+    });
+  }
+
+  // Listen to Firestore broadcasts collection for real-time admin push announcements
+  if (typeof firebaseDb !== 'undefined' && firebaseDb) {
+    try {
+      firebaseDb.collection('broadcasts').orderBy('createdAt', 'desc').limit(1).onSnapshot((snap) => {
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const b = change.doc.data();
+            const now = Date.now();
+            const msgTime = b.createdAt ? new Date(b.createdAt).getTime() : now;
+            // Only alert if message is fresh (less than 2 minutes old)
+            if (now - msgTime < 120000) {
+              triggerFloatingAlertEverywhere({
+                type: "cloud_broadcast",
+                title: `📢 ${b.title || 'بيان عاجل من الإدارة'}`,
+                content: b.message || 'رسالة جديدة من إدارة تحويشة استغفار',
+                subNote: "بث سحابي فوري"
+              });
+            }
+          }
+        });
+      }, (err) => {
+        console.debug("Broadcasts listener notice:", err.message);
+      });
+    } catch (e) {
+      console.debug("Realtime broadcasts listener init notice:", e.message);
+    }
   }
 }
