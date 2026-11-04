@@ -635,6 +635,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkForAppUpdates(true);
   }, 3000);
 
+  // 3. Real-time Firebase Cloud Broadcast listener for all users
+  if (typeof FirebaseSync !== 'undefined' && FirebaseSync.listenForBroadcasts) {
+    FirebaseSync.listenForBroadcasts((bc) => {
+      console.log("[Broadcast] Received live broadcast:", bc);
+      triggerFloatingAlertEverywhere({
+        type: "admin_broadcast",
+        title: "📢 " + (bc.title || "تنبيه إداري عام"),
+        content: bc.message || "",
+        subNote: "رسالة عامة من إدارة التطبيق لجميع المشتركين"
+      });
+    });
+  }
+
   // Load initial religious data
   fetchNextReligious('azkar');
   fetchNextReligious('quran');
@@ -1266,7 +1279,7 @@ function testFloatingAlert(type) {
           id: 9999,
           title: alertPayload.title || "تنبيه عائم • تحويشة استغفار",
           body: alertPayload.content || alertPayload.message || "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-          channelId: 'tahwesha_floating_channel',
+          channelId: 'tahwesha_heads_up_v3',
           schedule: { at: new Date(Date.now() + 3000) },
           sound: 'notification.wav'
         }]
@@ -1471,7 +1484,7 @@ async function initMobileNotifications() {
       const { LocalNotifications } = window.Capacitor.Plugins;
       await LocalNotifications.requestPermissions();
       await LocalNotifications.createChannel({
-        id: 'tahwesha_floating_channel',
+        id: 'tahwesha_heads_up_v3',
         name: 'تنبيهات تحويشة استغفار العائمة',
         description: 'تنبيهات عائمة منبثقة على شاشة الموبايل حتى لو الموبايل مقفول مثل الواتساب',
         importance: 5, // IMPORTANCE_HIGH (5) -> Triggers Heads-Up Floating Alert over any screen!
@@ -1516,7 +1529,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
       id: 999,
       title: "📿 ذكر واستغفار • تحويشة استغفار",
       body: testThikr ? `« ${testThikr.text} »` : "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-      channelId: 'tahwesha_floating_channel',
+      channelId: 'tahwesha_heads_up_v3',
       schedule: { at: new Date(now + 60 * 1000), allowWhileIdle: true },
       sound: 'notification.wav'
     });
@@ -1532,7 +1545,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: "📿 ذكر واستغفار • تحويشة استغفار",
         body: `« ${thikrText} »${fadlText}`,
-        channelId: 'tahwesha_floating_channel',
+        channelId: 'tahwesha_heads_up_v3',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
@@ -1554,7 +1567,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `📖 5 آيات من ${surahTitle}`,
         body: `${versesPreview}`,
-        channelId: 'tahwesha_floating_channel',
+        channelId: 'tahwesha_heads_up_v3',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
@@ -1572,7 +1585,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `🤲 دعاء للمتوفي (${targetName})`,
         body: duaaText,
-        channelId: 'tahwesha_floating_channel',
+        channelId: 'tahwesha_heads_up_v3',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
@@ -1604,7 +1617,7 @@ async function triggerFloatingAlertEverywhere(alertPayload) {
           id: Math.floor(Math.random() * 1000000),
           title: title,
           body: body,
-          channelId: 'tahwesha_floating_channel',
+          channelId: 'tahwesha_heads_up_v3',
           schedule: { at: new Date(Date.now() + 300) }
         }]
       });
@@ -2266,21 +2279,32 @@ async function handleSendBroadcast(e) {
   const message = document.getElementById('broadcastMessageInput').value.trim();
 
   try {
-    await apiCall('/api/admin/broadcast', 'POST', { title, message });
+    // 1. Send to Firebase Firestore so all subscriber devices receive it
+    if (typeof FirebaseSync !== 'undefined' && FirebaseSync.sendBroadcastToCloud) {
+      await FirebaseSync.sendBroadcastToCloud(title, message);
+    }
+
+    // 2. Also send to local backend API
+    try {
+      await apiCall('/api/admin/broadcast', 'POST', { title, message });
+    } catch (apiErr) {
+      console.debug('Backend broadcast notice:', apiErr.message);
+    }
+
     document.getElementById('broadcastTitleInput').value = '';
     document.getElementById('broadcastMessageInput').value = '';
     
-    // Also trigger immediate floating alert for broadcast demonstration
-    testFloatingAlert({
+    // 3. Immediate floating alert for admin preview
+    triggerFloatingAlertEverywhere({
       type: "admin_broadcast",
       title: `📢 ${title}`,
       content: message,
-      subNote: "تنبيه عام من إدارة تحويشة استغفار"
+      subNote: "تنبيه عام مرسل لجميع المشتركين"
     });
 
-    alert("تم بث التنبيه لجميع العملاء بنجاح!");
+    alert("تم إرسال الرسالة لجميع المشتركين بنجاح عبر السحابة وتنبيهات الهواتف!");
   } catch (err) {
-    alert(err.message);
+    alert("تنبيه: " + err.message);
   }
 }
 

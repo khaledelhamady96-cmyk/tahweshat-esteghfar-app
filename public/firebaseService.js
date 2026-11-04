@@ -226,6 +226,54 @@ const FirebaseSync = {
       console.debug("Firebase version check notice:", e.message);
     }
     return null;
+  },
+
+  async sendBroadcastToCloud(title, message) {
+    if (!firebaseDb) return { success: false, error: "Firebase not initialized" };
+    try {
+      const bcId = "bc_" + Date.now();
+      await firebaseDb.collection('broadcasts').doc(bcId).set({
+        id: bcId,
+        title: title,
+        message: message,
+        createdAt: new Date().toISOString()
+      });
+      console.log(`[Firebase] Broadcast ${bcId} sent to cloud.`);
+      return { success: true, id: bcId };
+    } catch (e) {
+      console.warn("[Firebase] Send broadcast error:", e.message);
+      return { success: false, error: e.message };
+    }
+  },
+
+  listenForBroadcasts(callback) {
+    if (!firebaseDb) return;
+    try {
+      firebaseDb.collection('broadcasts')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .onSnapshot(snapshot => {
+          if (!snapshot.empty) {
+            const doc = snapshot.docs[0];
+            const data = doc.data();
+            const lastSeen = localStorage.getItem('tahwesha_last_seen_broadcast');
+            if (data && data.id && data.id !== lastSeen) {
+              const createdTime = new Date(data.createdAt).getTime();
+              // Trigger if broadcast was sent in the last 24 hours
+              if (Date.now() - createdTime < 24 * 60 * 60 * 1000) {
+                localStorage.setItem('tahwesha_last_seen_broadcast', data.id);
+                if (typeof callback === 'function') {
+                  callback(data);
+                }
+              }
+            }
+          }
+        }, err => {
+          console.debug("[Firebase] Broadcast listener notice:", err.message);
+        });
+    } catch (e) {
+      console.debug("[Firebase] Broadcast listen setup notice:", e.message);
+    }
   }
 };
 

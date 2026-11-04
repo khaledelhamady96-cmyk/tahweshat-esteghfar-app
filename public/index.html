@@ -883,32 +883,34 @@
 
   </div>
 
-  <!-- ================= IN-APP FLOATING OVERLAY ALERT (CARD WITH CLOSE BUTTON ✕) ================= -->
-  <!-- يظهر كتنبيه عائم أنيق داخل التطبيق مع زر إغلاق صريح ✕ وبنفس الوقت يطلق إشعار Heads-up على شاشة الموبايل -->
-  <div id="inAppFloatingAlert" class="hidden fixed top-4 left-3 right-3 sm:left-auto sm:right-4 sm:w-96 z-50 bg-gradient-to-br from-brand-950 via-slate-950 to-brand-900 border-2 border-gold-500 rounded-3xl shadow-2xl p-4 space-y-2.5 backdrop-blur-xl animate-bounceIn">
-    <div class="flex items-center justify-between border-b border-gold-500/30 pb-2">
-      <div class="flex items-center gap-2">
-        <img src="assets/logo.svg" alt="logo" class="w-7 h-7 rounded-full border border-gold-400">
-        <span class="text-xs font-black text-gold-300" id="inAppAlertTitle">تنبيه عائم</span>
+  <!-- ================= IN-APP FLOATING OVERLAY ALERT (CENTERED CARD WITH CLOSE BUTTON ✕) ================= -->
+  <!-- يظهر كبطاقة عائمة في المنتصف بخلفية ضبابية وزر إغلاق صريح ✕ وبنفس الوقت يطلق إشعار Heads-up على شاشة الموبايل -->
+  <div id="inAppFloatingAlert" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="w-full max-w-sm bg-gradient-to-br from-brand-950 via-slate-950 to-brand-900 border-2 border-gold-500 rounded-3xl shadow-2xl p-5 space-y-3 animate-bounceIn">
+      <div class="flex items-center justify-between border-b border-gold-500/30 pb-2.5">
+        <div class="flex items-center gap-2">
+          <img src="assets/logo.svg" alt="logo" class="w-7 h-7 rounded-full border border-gold-400">
+          <span class="text-xs font-black text-gold-300" id="inAppAlertTitle">تنبيه عائم</span>
+        </div>
+        <!-- زر إغلاق التنبيه الصريح المباشر -->
+        <button onclick="closeInAppFloatingAlert()" class="text-xs bg-red-900/60 hover:bg-red-800 text-red-200 px-2.5 py-1 rounded-xl border border-red-700/50 flex items-center gap-1 active:scale-95">
+          <span>إغلاق</span>
+          <span class="font-bold">✕</span>
+        </button>
       </div>
-      <!-- زر إغلاق التنبيه الصريح المباشر -->
-      <button onclick="closeInAppFloatingAlert()" class="text-xs bg-red-900/60 hover:bg-red-800 text-red-200 px-2.5 py-1 rounded-xl border border-red-700/50 flex items-center gap-1 active:scale-95">
-        <span>إغلاق</span>
-        <span class="font-bold">✕</span>
-      </button>
-    </div>
 
-    <div class="py-1 text-center text-sm font-bold text-white font-quran leading-relaxed" id="inAppAlertContent"></div>
-    <div class="text-[11px] text-brand-300 bg-brand-950/60 p-2 rounded-xl border border-brand-800/40 text-center" id="inAppAlertNote" style="display: none;"></div>
+      <div class="py-2 text-center text-base font-bold text-white font-quran leading-relaxed" id="inAppAlertContent"></div>
+      <div class="text-xs text-brand-300 bg-brand-950/60 p-2.5 rounded-xl border border-brand-800/40 text-center" id="inAppAlertNote" style="display: none;"></div>
 
-    <div class="flex items-center justify-between pt-1 border-t border-white/10 text-[10px] text-slate-400">
-      <span class="flex items-center gap-1">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        تنبيه عائم على الشاشة
-      </span>
-      <button onclick="closeInAppFloatingAlert()" class="text-gold-400 hover:text-white font-bold">
-        تمت القراءة ✓
-      </button>
+      <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-slate-400">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          تحويشة استغفار - تنبيه عائم
+        </span>
+        <button onclick="closeInAppFloatingAlert()" class="text-gold-400 hover:text-white font-bold">
+          تم الاطلاع ✓
+        </button>
+      </div>
     </div>
   </div>
 
