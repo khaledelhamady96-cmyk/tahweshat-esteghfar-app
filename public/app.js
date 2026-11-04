@@ -511,7 +511,8 @@ async function handleOfflineApiCall(endpoint, method, body) {
     let users = OfflineEngine.getStorage('users', []);
     if (typeof FirebaseSync !== 'undefined') {
       try {
-        const cloudUsers = await FirebaseSync.fetchAllSubscribersForAdmin();
+        const res = await FirebaseSync.fetchAllSubscribersForAdmin();
+        const cloudUsers = Array.isArray(res) ? res : (res && res.users ? res.users : []);
         if (cloudUsers && cloudUsers.length > 0) {
           cloudUsers.forEach(cu => {
             const idx = users.findIndex(u => normalizePhone(u.phone) === normalizePhone(cu.phone));
@@ -1317,7 +1318,7 @@ function testFloatingAlert(type) {
           id: 9999,
           title: alertPayload.title || "تنبيه عائم • تحويشة استغفار",
           body: alertPayload.content || alertPayload.message || "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-          channelId: 'tahwesha_heads_up_v3',
+          channelId: 'tahwesha_heads_up_v4',
           schedule: { at: new Date(Date.now() + 3000) },
           sound: 'notification.wav'
         }]
@@ -1522,7 +1523,7 @@ async function initMobileNotifications() {
       const { LocalNotifications } = window.Capacitor.Plugins;
       await LocalNotifications.requestPermissions();
       await LocalNotifications.createChannel({
-        id: 'tahwesha_heads_up_v3',
+        id: 'tahwesha_heads_up_v4',
         name: 'تنبيهات تحويشة استغفار العائمة',
         description: 'تنبيهات عائمة منبثقة على شاشة الموبايل حتى لو الموبايل مقفول مثل الواتساب',
         importance: 5, // IMPORTANCE_HIGH (5) -> Triggers Heads-Up Floating Alert over any screen!
@@ -1560,15 +1561,17 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
     const now = Date.now();
     let notifIdCounter = 1000;
 
-    // 0. Immediate 60-second test reminder (Allows user to test lock screen immediately!)
+    // 0. Immediate 45-second test reminder (Allows user to test lock screen immediately!)
     const azkarList = (typeof EMBEDDED_AZKAR !== 'undefined') ? EMBEDDED_AZKAR : [];
     const testThikr = azkarList.length ? azkarList[0] : null;
     notificationsToSchedule.push({
       id: 999,
       title: "📿 ذكر واستغفار • تحويشة استغفار",
       body: testThikr ? `« ${testThikr.text} »` : "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-      channelId: 'tahwesha_heads_up_v3',
-      schedule: { at: new Date(now + 60 * 1000), allowWhileIdle: true },
+      channelId: 'tahwesha_heads_up_v4',
+      smallIcon: 'ic_stat_tahwesha',
+      iconColor: '#10B981',
+      schedule: { at: new Date(now + 45 * 1000), allowWhileIdle: true },
       sound: 'notification.wav'
     });
 
@@ -1583,7 +1586,9 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: "📿 ذكر واستغفار • تحويشة استغفار",
         body: `« ${thikrText} »${fadlText}`,
-        channelId: 'tahwesha_heads_up_v3',
+        channelId: 'tahwesha_heads_up_v4',
+        smallIcon: 'ic_stat_tahwesha',
+        iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
@@ -1605,7 +1610,9 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `📖 5 آيات من ${surahTitle}`,
         body: `${versesPreview}`,
-        channelId: 'tahwesha_heads_up_v3',
+        channelId: 'tahwesha_heads_up_v4',
+        smallIcon: 'ic_stat_tahwesha',
+        iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
@@ -1623,17 +1630,110 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `🤲 دعاء للمتوفي (${targetName})`,
         body: duaaText,
-        channelId: 'tahwesha_heads_up_v3',
+        channelId: 'tahwesha_heads_up_v4',
+        smallIcon: 'ic_stat_tahwesha',
+        iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
         sound: 'notification.wav'
       });
     }
 
-    // 5. Send batch to Android AlarmManager
+    // 5. Schedule Vehicle License Expiry Reminders (رخص المركبات والسيارات)
+    const vehicles = OfflineEngine.getStorage('vehicles', []);
+    if (Array.isArray(vehicles) && vehicles.length > 0) {
+      vehicles.forEach((veh, vIdx) => {
+        if (veh.expiryDate) {
+          const expTime = new Date(veh.expiryDate).getTime();
+          const daysLeft = Math.ceil((expTime - now) / (1000 * 60 * 60 * 24));
+          const vehTitle = veh.title || veh.plateNumber || "المركبة";
+          let alertMsg = "";
+          if (daysLeft < 0) {
+            alertMsg = `⚠️ رخصة السيارة (${vehTitle}) منتهية منذ ${Math.abs(daysLeft)} يوم! يرجى التجديد لتجنب سحب اللوحات والغرامات.`;
+          } else if (daysLeft <= 30) {
+            alertMsg = `🚗 متبقي ${daysLeft} يوم فقط على انتهاء رخصة (${vehTitle}) بتاريخ ${veh.expiryDate}. يرجى الاستعداد للتجديد.`;
+          }
+
+          if (alertMsg) {
+            // Schedule alert at 10:00 AM or after 2 hours
+            const schedAt = new Date(now + (2 + vIdx) * 60 * 60 * 1000);
+            notificationsToSchedule.push({
+              id: notifIdCounter++,
+              title: `🚗 تنبيه رخصة السيارة • ${vehTitle}`,
+              body: alertMsg,
+              channelId: 'tahwesha_heads_up_v4',
+              smallIcon: 'ic_stat_tahwesha',
+              iconColor: '#F59E0B',
+              schedule: { at: schedAt, allowWhileIdle: true },
+              sound: 'notification.wav'
+            });
+          }
+        }
+      });
+    }
+
+    // 6. Schedule Financial Dues & Installments Reminders (المستحقات والأقساط والجمعيات)
+    const fin = OfflineEngine.getStorage('financials', {});
+    
+    // A. Installments (الأقساط)
+    if (fin && Array.isArray(fin.installments)) {
+      fin.installments.forEach((inst, iIdx) => {
+        const instAmount = parseFloat(inst.amount) || 0;
+        const schedAt = new Date(now + (4 + iIdx * 2) * 60 * 60 * 1000);
+        notificationsToSchedule.push({
+          id: notifIdCounter++,
+          title: `💳 موعد سداد قسط: ${inst.title}`,
+          body: `تذكير بموعد سداد قسط ${inst.title} بقيمة ${instAmount.toLocaleString()} ج.م (يوم ${inst.dueDay || 'المحدد'} من الشهر).`,
+          channelId: 'tahwesha_heads_up_v4',
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#3B82F6',
+          schedule: { at: schedAt, allowWhileIdle: true },
+          sound: 'notification.wav'
+        });
+      });
+    }
+
+    // B. Money Circles (الجمعيات)
+    if (fin && Array.isArray(fin.moneyCircles)) {
+      fin.moneyCircles.forEach((circ, cIdx) => {
+        const circAmount = parseFloat(circ.monthlyAmount) || 0;
+        const schedAt = new Date(now + (6 + cIdx * 2) * 60 * 60 * 1000);
+        notificationsToSchedule.push({
+          id: notifIdCounter++,
+          title: `💰 تذكير سداد الجمعية: ${circ.name}`,
+          body: `ميعاد سداد قسط جمعية ${circ.name} بقيمة ${circAmount.toLocaleString()} ج.م، قبضك بشهر: ${circ.payoutMonth || 'المحدد'}.`,
+          channelId: 'tahwesha_heads_up_v4',
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#10B981',
+          schedule: { at: schedAt, allowWhileIdle: true },
+          sound: 'notification.wav'
+        });
+      });
+    }
+
+    // C. Receivables (المستحقات والديون التي لك بالخارج)
+    if (fin && Array.isArray(fin.receivables)) {
+      const pendingRecs = fin.receivables.filter(r => !r.collected);
+      pendingRecs.forEach((rec, rIdx) => {
+        const recAmount = parseFloat(rec.amount) || 0;
+        const schedAt = new Date(now + (8 + rIdx * 2) * 60 * 60 * 1000);
+        notificationsToSchedule.push({
+          id: notifIdCounter++,
+          title: `💵 تذكير تحصيل مستحقات`,
+          body: `لديك مستحق لدى ${rec.debtorName} بقيمة ${recAmount.toLocaleString()} ج.م لم يتم تحصيله بعد.`,
+          channelId: 'tahwesha_heads_up_v4',
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#8B5CF6',
+          schedule: { at: schedAt, allowWhileIdle: true },
+          sound: 'notification.wav'
+        });
+      });
+    }
+
+    // 7. Send batch to Android AlarmManager
     await LocalNotifications.schedule({
       notifications: notificationsToSchedule
     });
-    console.log(`Successfully scheduled ${notificationsToSchedule.length} background reminders in Android AlarmManager.`);
+    console.log(`Successfully scheduled ${notificationsToSchedule.length} background reminders (Athkar, Quran, Duaa, Vehicles, Installments) in Android AlarmManager.`);
   } catch (err) {
     console.warn("Background reminder scheduling notice:", err);
   }
@@ -1655,8 +1755,11 @@ async function triggerFloatingAlertEverywhere(alertPayload) {
           id: Math.floor(Math.random() * 1000000),
           title: title,
           body: body,
-          channelId: 'tahwesha_heads_up_v3',
-          schedule: { at: new Date(Date.now() + 300) }
+          channelId: 'tahwesha_heads_up_v4',
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#10B981',
+          sound: 'notification.wav',
+          schedule: { at: new Date(Date.now() + 300), allowWhileIdle: true }
         }]
       });
     } catch (e) {

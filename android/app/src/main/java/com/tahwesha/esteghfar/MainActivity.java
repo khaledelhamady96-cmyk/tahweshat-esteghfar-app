@@ -5,6 +5,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
 import android.view.WindowManager;
+import android.net.Uri;
+import android.media.AudioAttributes;
+import android.graphics.Color;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -30,24 +33,27 @@ public class MainActivity extends BridgeActivity {
 
     private void createFloatingNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = "tahwesha_heads_up_v3";
+            String channelId = "tahwesha_heads_up_v4";
             CharSequence name = "تنبيهات تحويشة استغفار العائمة";
-            String description = "تنبيهات منبثقة عائمة تظهر على الشاشة وفوق شاشة القفل مباشرة";
+            String description = "تنبيهات منبثقة عائمة تظهر على الشاشة وفوق شاشة القفل مباشرة مع الصوت والاهتزاز";
             int importance = NotificationManager.IMPORTANCE_HIGH;
 
             NotificationChannel channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
             channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 250, 150, 250});
             channel.enableLights(true);
-            channel.setLightColor(android.graphics.Color.YELLOW);
+            channel.setLightColor(Color.YELLOW);
             channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
             channel.setBypassDnd(true);
 
-            android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
-                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
                 .build();
-            channel.setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, audioAttributes);
+
+            Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notification);
+            channel.setSound(soundUri, audioAttributes);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             if (notificationManager != null) {
