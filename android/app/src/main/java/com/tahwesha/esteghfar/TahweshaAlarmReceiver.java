@@ -70,7 +70,6 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(fullScreenPendingIntent)
-                .setFullScreenIntent(fullScreenPendingIntent, true)
                 .setAutoCancel(true)
                 .setColor(Color.parseColor("#10B981"))
                 .setSound(soundUri)
