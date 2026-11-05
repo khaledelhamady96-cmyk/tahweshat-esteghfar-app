@@ -109,6 +109,35 @@ public class MainActivity extends BridgeActivity {
                     }
 
                     @JavascriptInterface
+                    public boolean isBatteryOptimizationIgnored() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            try {
+                                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                                return pm != null && pm.isIgnoringBatteryOptimizations(getPackageName());
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+
+                    @JavascriptInterface
+                    public void requestBatteryExemption() {
+                        runOnUiThread(() -> requestBatteryExemptionIfNeeded());
+                    }
+
+                    @JavascriptInterface
+                    public void requestPostNotificationPermission() {
+                        runOnUiThread(() -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, REQ_PERMISSIONS);
+                                    return;
+                                }
+                            }
+                            openNotificationSettings();
+                        });
+                    }
+
+                    @JavascriptInterface
                     public void testNotificationInSeconds(int seconds) {
                         TahweshaReminderManager.scheduleSingleAlarm(
                             MainActivity.this,

@@ -4,7 +4,7 @@
  */
 
 // Global State
-const BUILD_APP_VERSION = "2.5.4";
+const BUILD_APP_VERSION = "2.5.5";
 let CURRENT_APP_VERSION = (() => {
   try {
     const cached = localStorage.getItem("tahwesha_app_version");
@@ -620,6 +620,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSecurityLock();
   initRealtimeCloudListeners();
   checkNotificationStatusOnStartup();
+  checkMandatoryNotificationSetup();
+  window.addEventListener('focus', checkMandatoryNotificationSetup);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      checkMandatoryNotificationSetup();
+    }
+  });
   if (typeof updateShareCounterDisplay === 'function') updateShareCounterDisplay();
 
   // 1. Persistent User Session (Never log out when closing or exiting app)
@@ -1789,6 +1796,151 @@ function openPhoneBackgroundSettings() {
     } catch (e) {}
   }
   alert("يرجى فتح إعدادات الهاتف ⚙️ > التطبيقات > تحويشة استغفار > تفعيل (التشغيل التلقائي) واختيار البطارية (غير مقيد).");
+}
+
+// ---------------- MANDATORY NOTIFICATION & BATTERY SETUP GATE ---------------- //
+function checkMandatoryNotificationSetup() {
+  const modal = document.getElementById('mandatorySetupModal');
+  if (!modal) return;
+
+  const isNative = !!(window.TahweshaNative);
+  let notifsEnabled = false;
+
+  if (isNative && window.TahweshaNative.areNotificationsEnabled) {
+    try {
+      notifsEnabled = window.TahweshaNative.areNotificationsEnabled();
+    } catch (e) {
+      console.warn("areNotificationsEnabled error:", e);
+    }
+  } else if (typeof Notification !== 'undefined') {
+    notifsEnabled = (Notification.permission === 'granted');
+  } else {
+    notifsEnabled = true;
+  }
+
+  // Update Step 1 Badge
+  const b1 = document.getElementById('mandatoryStep1Badge');
+  if (b1) {
+    if (notifsEnabled) {
+      b1.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+      b1.innerText = "مُفعل بنجاح ✅";
+    } else {
+      b1.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse";
+      b1.innerText = "مطلوب ❌";
+    }
+  }
+
+  // Update Step 2 Badge
+  const b2 = document.getElementById('mandatoryStep2Badge');
+  if (b2 && isNative && window.TahweshaNative.isBatteryOptimizationIgnored) {
+    try {
+      const unconstrained = window.TahweshaNative.isBatteryOptimizationIgnored();
+      if (unconstrained) {
+        b2.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        b2.innerText = "غير مقيد ✅";
+      } else {
+        b2.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        b2.innerText = "موصى به بشدة ⚙️";
+      }
+    } catch (e) {}
+  }
+
+  const alreadyDone = localStorage.getItem('tahwesha_mandatory_setup_done') === 'true';
+
+  // If notifications are disabled (or initial setup hasn't been completed in native app), enforce mandatory modal
+  if (!notifsEnabled || (!alreadyDone && isNative)) {
+    modal.classList.remove('hidden');
+  } else {
+    modal.classList.add('hidden');
+  }
+
+  // Also refresh dashboard diagnostic pill
+  if (typeof checkNotificationStatusOnStartup === 'function') {
+    checkNotificationStatusOnStartup();
+  }
+}
+
+function handleMandatoryStep1() {
+  if (window.TahweshaNative && window.TahweshaNative.requestPostNotificationPermission) {
+    try {
+      window.TahweshaNative.requestPostNotificationPermission();
+    } catch (e) {
+      if (window.TahweshaNative.openNotificationSettings) window.TahweshaNative.openNotificationSettings();
+    }
+  } else if (window.TahweshaNative && window.TahweshaNative.openNotificationSettings) {
+    window.TahweshaNative.openNotificationSettings();
+  } else if (typeof Notification !== 'undefined' && Notification.requestPermission) {
+    Notification.requestPermission().then(() => checkMandatoryNotificationSetup());
+  }
+
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+    try {
+      window.Capacitor.Plugins.LocalNotifications.requestPermissions();
+    } catch (e) {}
+  }
+
+  setTimeout(checkMandatoryNotificationSetup, 1200);
+}
+
+function handleMandatoryBatteryExemption() {
+  if (window.TahweshaNative && window.TahweshaNative.requestBatteryExemption) {
+    try {
+      window.TahweshaNative.requestBatteryExemption();
+    } catch (e) {
+      console.warn("requestBatteryExemption error:", e);
+    }
+  } else if (window.TahweshaNative && window.TahweshaNative.openAutoStartSettings) {
+    window.TahweshaNative.openAutoStartSettings();
+  }
+  setTimeout(checkMandatoryNotificationSetup, 1200);
+}
+
+function handleMandatoryAutoStart() {
+  if (window.TahweshaNative && window.TahweshaNative.openAutoStartSettings) {
+    try {
+      window.TahweshaNative.openAutoStartSettings();
+    } catch (e) {
+      console.warn("openAutoStartSettings error:", e);
+    }
+  }
+}
+
+function handleMandatoryTest5s() {
+  const fb = document.getElementById('mandatoryTestFeedback');
+  if (fb) {
+    fb.classList.remove('hidden');
+    fb.innerHTML = `⏳ جاري إطلاق الإشعار بعد 5 ثوانٍ... اقفل شاشة هاتفك الآن لتجربته مع الصوت والاهتزاز!`;
+  }
+  testInstantNotification5s();
+}
+
+function finishMandatorySetup() {
+  const isNative = !!(window.TahweshaNative);
+  let notifsEnabled = false;
+
+  if (isNative && window.TahweshaNative.areNotificationsEnabled) {
+    try {
+      notifsEnabled = window.TahweshaNative.areNotificationsEnabled();
+    } catch (e) {}
+  } else if (typeof Notification !== 'undefined') {
+    notifsEnabled = (Notification.permission === 'granted');
+  } else {
+    notifsEnabled = true;
+  }
+
+  const err = document.getElementById('mandatoryErrorHint');
+
+  if (!notifsEnabled) {
+    if (err) err.classList.remove('hidden');
+    handleMandatoryStep1();
+    return;
+  }
+
+  if (err) err.classList.add('hidden');
+  localStorage.setItem('tahwesha_mandatory_setup_done', 'true');
+  const modal = document.getElementById('mandatorySetupModal');
+  if (modal) modal.classList.add('hidden');
+  showToast('تم تفعيل التنبيهات الدائمة بنجاح! تقبل الله طاعاتكم 📿✨', 'success');
 }
 
 // ---------------- MOBILE & DESKTOP FLOATING HEADS-UP NOTIFICATIONS ---------------- //

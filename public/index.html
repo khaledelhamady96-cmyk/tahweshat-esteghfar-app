@@ -1971,5 +1971,115 @@
         </button>
       </div>
     </div>
+
+    <!-- ================= MANDATORY NOTIFICATION & BATTERY SETUP MODAL (شاشة التهيئة الإجبارية لضمان عمل الأذكار 24 ساعة) ================= -->
+    <div id="mandatorySetupModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl overflow-y-auto">
+      <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/50 rounded-3xl w-full max-w-sm p-5 shadow-2xl text-center space-y-4 my-auto relative animate-in fade-in zoom-in-95 duration-300">
+        
+        <!-- Header Badge & Icon -->
+        <div class="relative mx-auto w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-600 via-brand-600 to-teal-500 p-0.5 shadow-xl shadow-emerald-500/30 flex items-center justify-center">
+          <div class="w-full h-full bg-slate-950/40 rounded-[22px] flex items-center justify-center">
+            <i class="fa-solid fa-bell-ring text-2xl text-emerald-300 animate-bounce"></i>
+          </div>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-[10px] font-black text-black shadow">
+            !
+          </span>
+        </div>
+
+        <div>
+          <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            خطوة إلزامية لمرة واحدة فقط
+          </span>
+          <h2 class="text-base font-black text-white mt-2">تهيئة تنبيهات الاستغفار الدائمة 📿</h2>
+          <p class="text-xs text-slate-300 leading-relaxed mt-1">
+            لضمان وصول أذكار الاستغفار ومواقيت الصلاة إلى شاشة هاتفك باستمرار دون أن يقوم نظام أندرويد بإيقافها في الخلفية، يرجى استكمال الخطوات التالية:
+          </p>
+        </div>
+
+        <!-- Setup Steps Cards -->
+        <div class="space-y-2.5 text-right">
+          
+          <!-- Step 1: System Notification Permission -->
+          <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="mandatoryStep1Badge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                مطلوب
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-white">1. إذن الإشعارات الرسمي</span>
+                <i class="fa-solid fa-bell text-brand-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              السماح للتطبيق بإظهار التنبيهات المنبثقة والصوتية على شاشة هاتفك.
+            </p>
+            <button type="button" onclick="handleMandatoryStep1()" class="w-full py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md">
+              <i class="fa-solid fa-check"></i>
+              <span>منح إذن الإشعارات الآن</span>
+            </button>
+          </div>
+
+          <!-- Step 2: Auto-Start & Battery Optimization Exemption -->
+          <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="mandatoryStep2Badge" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                مهم جداً
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-white">2. التشغيل التلقائي وإلغاء قيود البطارية</span>
+                <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              (شاومي، ريلمي، أوبو، سامسونج) لمنع النظام من إيقاف التنبيهات عند قفل الشاشة.
+            </p>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="handleMandatoryBatteryExemption()" class="py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[11px] flex items-center justify-center gap-1 border border-amber-500/30 active:scale-95 transition-all">
+                <i class="fa-solid fa-battery-full text-xs"></i>
+                <span>إلغاء تقييد البطارية</span>
+              </button>
+              <button type="button" onclick="handleMandatoryAutoStart()" class="py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold text-[11px] flex items-center justify-center gap-1 border border-blue-500/30 active:scale-95 transition-all">
+                <i class="fa-solid fa-sliders text-xs"></i>
+                <span>التشغيل التلقائي</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Test Notification in 5s -->
+          <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                اختياري للتأكد
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-white">3. تجربة التنبيه الفوري</span>
+                <i class="fa-solid fa-paper-plane text-emerald-400 text-xs"></i>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-tight">
+              اضغط الزر واقفل شاشتك فوراً لتتأكد بنفسك من ظهور الذكر مع الصوت خلال 5 ثوانٍ!
+            </p>
+            <button type="button" onclick="handleMandatoryTest5s()" class="w-full py-2 px-3 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md">
+              <i class="fa-solid fa-play"></i>
+              <span>تجربة إشعار حقيقي (خلال 5 ثوانٍ)</span>
+            </button>
+            <div id="mandatoryTestFeedback" class="hidden text-[11px] font-bold text-emerald-400 text-center bg-emerald-950/60 p-1.5 rounded-xl border border-emerald-500/30"></div>
+          </div>
+
+        </div>
+
+        <!-- Enter Application Button (Gated) -->
+        <div class="pt-2">
+          <button type="button" id="mandatoryCompleteBtn" onclick="finishMandatorySetup()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-brand-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 active:scale-95 transition-all">
+            <span>تم الضبط بنجاح • الدخول للتطبيق</span>
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <p id="mandatoryErrorHint" class="hidden text-xs text-red-400 font-bold mt-2 animate-bounce">
+            ⚠️ يرجى تفعيل إذن الإشعارات أولاً بالضغط على الزر رقم 1 للدخول إلى التطبيق!
+          </p>
+        </div>
+
+      </div>
+    </div>
 </body>
 </html>
