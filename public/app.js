@@ -4,7 +4,7 @@
  */
 
 // Global State - Strictly anchored to actual built assets version
-const BUILD_APP_VERSION = "2.6.2";
+const BUILD_APP_VERSION = "2.6.3";
 let CURRENT_APP_VERSION = BUILD_APP_VERSION;
 try {
   localStorage.setItem("tahwesha_app_version", BUILD_APP_VERSION);

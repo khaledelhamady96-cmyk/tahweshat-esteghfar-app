@@ -223,36 +223,35 @@ public class TahweshaReminderManager {
 
         long triggerAt = System.currentTimeMillis() + delayMillis;
 
+        // Intent for AlarmClockInfo to satisfy system alarm clock contracts
+        Intent showIntent = new Intent(context, MainActivity.class);
+        showIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent showPi = PendingIntent.getActivity(context, id + 40000, showIntent, flags);
+
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (am.canScheduleExactAlarms()) {
-                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-                } else {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                // HIGHEST KERNEL PRIORITY: Wakes up phone from deep Doze mode, bypasses OEM battery throttling
+                AlarmManager.AlarmClockInfo clockInfo = new AlarmManager.AlarmClockInfo(triggerAt, showPi);
+                am.setAlarmClock(clockInfo, pi);
+                Log.d(TAG, "Scheduled unskippable AlarmClock for " + type + " in " + (delayMillis / 1000) + "s (ID: " + id + ")");
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
             } else {
                 am.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
             }
-        } catch (SecurityException se) {
-            Log.w(TAG, "Exact alarm restricted, falling back to setAndAllowWhileIdle: " + se.getMessage());
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-                } else {
-                    am.set(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-                }
-            } catch (Throwable t) {
-                Log.e(TAG, "Fallback setAndAllowWhileIdle failed", t);
-            }
         } catch (Throwable t) {
-            Log.e(TAG, "Unexpected error in scheduleSingleAlarm", t);
+            Log.w(TAG, "setAlarmClock notice, falling back: " + t.getMessage());
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                } else {
+                    am.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable t2) {
+                try {
+                    am.set(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                } catch (Throwable ignored) {}
+            }
         }
     }
 }

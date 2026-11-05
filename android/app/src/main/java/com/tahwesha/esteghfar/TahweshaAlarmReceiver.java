@@ -96,15 +96,23 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
             return;
         }
 
-        // 1. Acquire WakeLock to wake CPU
+        // 1. Acquire WakeLock to turn on screen and wake CPU immediately
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = null;
         if (pm != null) {
             try {
-                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Tahwesha:AlarmReceiverWakeLock");
-                wakeLock.acquire(15000); // 15 seconds max
+                wakeLock = pm.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                    PowerManager.ON_AFTER_RELEASE,
+                    "Tahwesha:ScreenWakeUpLock"
+                );
+                wakeLock.acquire(10000); // 10 seconds of screen bright
             } catch (Exception e) {
-                Log.w(TAG, "WakeLock acquire warning: " + e.getMessage());
+                try {
+                    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Tahwesha:AlarmReceiverWakeLock");
+                    wakeLock.acquire(15000);
+                } catch (Exception ignored) {}
             }
         }
 
@@ -142,16 +150,6 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
 
             // Display the high-priority floating heads-up alert
             showImmediateNotification(context, title, body);
-
-            // Ensure TahweshaService is actively running in background
-            try {
-                Intent serviceIntent = new Intent(context, TahweshaService.class);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent);
-                } else {
-                    context.startService(serviceIntent);
-                }
-            } catch (Exception ignored) {}
 
             // Automatically reschedule next reminder of this type to maintain an infinite loop!
             if (type != null) {
@@ -211,6 +209,7 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setFullScreenIntent(contentPendingIntent, true)
                 .setContentIntent(contentPendingIntent)
                 .setAutoCancel(true)
                 .setColor(Color.parseColor("#10B981"))
@@ -257,6 +256,7 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setFullScreenIntent(contentPendingIntent, true)
                 .setContentIntent(contentPendingIntent)
                 .setAutoCancel(true)
                 .setColor(Color.parseColor("#10B981"))
