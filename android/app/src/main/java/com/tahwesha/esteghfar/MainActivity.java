@@ -1,6 +1,7 @@
 package com.tahwesha.esteghfar;
 
 import android.os.Bundle;
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -129,6 +130,81 @@ public class MainActivity extends BridgeActivity {
                     @JavascriptInterface
                     public void requestBatteryExemption() {
                         runOnUiThread(() -> requestBatteryExemptionIfNeeded());
+                    }
+
+                    @JavascriptInterface
+                    public String getDeviceManufacturer() {
+                        return Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase() : "unknown";
+                    }
+
+                    @JavascriptInterface
+                    public boolean isExactAlarmPermissionGranted() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            try {
+                                AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                                return am != null && am.canScheduleExactAlarms();
+                            } catch (Exception ignored) {}
+                        }
+                        return true;
+                    }
+
+                    @JavascriptInterface
+                    public void openAlarmsAndRemindersSettings() {
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                                intent.setData(Uri.parse("package:" + getPackageName()));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                return;
+                            }
+                        } catch (Exception ignored) {}
+                        openNotificationSettings();
+                    }
+
+                    @JavascriptInterface
+                    public boolean isDisplayOverAppsGranted() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            return Settings.canDrawOverlays(MainActivity.this);
+                        }
+                        return true;
+                    }
+
+                    @JavascriptInterface
+                    public void openDisplayOverAppsSettings() {
+                        try {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                                intent.setData(Uri.parse("package:" + getPackageName()));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                return;
+                            }
+                        } catch (Exception ignored) {}
+                        openNotificationSettings();
+                    }
+
+                    @JavascriptInterface
+                    public void openSpecialPermissions() {
+                        try {
+                            Intent miuiOther = new Intent("miui.intent.action.APP_PERM_EDITOR");
+                            miuiOther.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
+                            miuiOther.putExtra("extra_pkgname", getPackageName());
+                            miuiOther.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(miuiOther);
+                            return;
+                        } catch (Exception ignored) {}
+                        openAppDetailsSettings();
+                    }
+
+                    @JavascriptInterface
+                    public void openAppDetailsSettings() {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            intent.setData(Uri.parse("package:" + getPackageName()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        } catch (Exception ignored) {}
                     }
 
                     @JavascriptInterface

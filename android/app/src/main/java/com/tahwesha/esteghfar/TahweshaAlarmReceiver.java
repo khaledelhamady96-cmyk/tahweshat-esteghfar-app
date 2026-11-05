@@ -26,7 +26,8 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
     public static final String EXTRA_BODY = "extra_body";
     public static final String EXTRA_ID = "extra_id";
 
-    public static final String CHANNEL_HEADS_UP = "tahwesha_heads_up_v5";
+    public static final String CHANNEL_HEADS_UP = "tahwesha_azkar_v7";
+    public static final String CHANNEL_AZKAR = "tahwesha_azkar_v7";
     public static final int NOTIF_ID_PRAYER = 7777;
 
     private static android.media.MediaPlayer activeAthanPlayer = null;
@@ -89,9 +90,15 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
         // Handle Stop Athan Action from notification button
         if (intent != null && ACTION_STOP_ATHAN.equals(intent.getAction())) {
             stopAthanPlayer();
+            try {
+                Intent stopServiceIntent = new Intent(context, TahweshaAthanService.class);
+                stopServiceIntent.setAction(TahweshaAthanService.ACTION_STOP_ATHAN);
+                context.startService(stopServiceIntent);
+            } catch (Exception ignored) {}
             NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) {
                 nm.cancel(NOTIF_ID_PRAYER);
+                nm.cancel(TahweshaAthanService.NOTIF_ID_ATHAN);
             }
             return;
         }
@@ -130,11 +137,25 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                     body = "الله أكبر، الله أكبر • حي على الصلاة • حي على الفلاح";
                 }
 
-                // Play chosen Athan sound with highest alarm priority
-                playAthanSound(context);
+                // Delegate playback and lockscreen heads-up notification to TahweshaAthanService (Foreground Service)
+                try {
+                    Intent serviceIntent = new Intent(context, TahweshaAthanService.class);
+                    serviceIntent.setAction(TahweshaAthanService.ACTION_PLAY_ATHAN);
+                    String prayerName = title.replace("🕌 حان الآن موعد أذان صلاة ", "").replace("🕌 حان الآن موعد الأذان والصلاة: ", "").replace("🕌 حان الآن موعد الأذان والصلاة", "").trim();
+                    if (prayerName.isEmpty()) prayerName = "الصلاة";
+                    serviceIntent.putExtra(TahweshaAthanService.EXTRA_PRAYER_NAME, prayerName);
 
-                // Show Heads-Up notification with interactive buttons
-                showPrayerAthanNotification(context, title, body);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent);
+                    } else {
+                        context.startService(serviceIntent);
+                    }
+                    Log.d(TAG, "Delegated Prayer Athan to TahweshaAthanService: " + prayerName);
+                } catch (Throwable t) {
+                    Log.e(TAG, "Could not start TahweshaAthanService, falling back to direct play", t);
+                    playAthanSound(context);
+                    showPrayerAthanNotification(context, title, body);
+                }
 
                 // Re-schedule prayer for tomorrow
                 TahweshaReminderManager.scheduleNextForType(context, TahweshaReminderManager.TYPE_PRAYER);
@@ -277,10 +298,10 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
             if (channel == null) {
                 channel = new NotificationChannel(
                     channelId,
-                    "تنبيهات تحويشة استغفار العائمة v5",
+                    "تنبيهات وأذكار تحويشة استغفار v7",
                     NotificationManager.IMPORTANCE_HIGH
                 );
-                channel.setDescription("تنبيهات عائمة منبثقة تظهر على الشاشة وفوق شاشة القفل مع الصوت والاهتزاز");
+                channel.setDescription("تنبيهات عائمة منبثقة تظهر على الشاشة وفوق شاشة القفل مع الصوت والاهتزاز للأذكار والاستغفار");
                 channel.enableVibration(true);
                 channel.setVibrationPattern(new long[]{0, 350, 150, 350});
                 channel.enableLights(true);

@@ -4,7 +4,7 @@
  */
 
 // Global State - Strictly anchored to actual built assets version
-const BUILD_APP_VERSION = "2.6.3";
+const BUILD_APP_VERSION = "2.6.4";
 let CURRENT_APP_VERSION = BUILD_APP_VERSION;
 try {
   localStorage.setItem("tahwesha_app_version", BUILD_APP_VERSION);
@@ -1827,8 +1827,14 @@ function openPhoneBackgroundSettings() {
   alert("يرجى فتح إعدادات الهاتف ⚙️ > التطبيقات > تحويشة استغفار > تفعيل (التشغيل التلقائي) واختيار البطارية (غير مقيد).");
 }
 
-// ---------------- MANDATORY NOTIFICATION & BATTERY SETUP GATE ---------------- //
-function checkMandatoryNotificationSetup() {
+// ---------------- MANDATORY NOTIFICATION & PHONE SETTINGS SETUP GATE ---------------- //
+function openBackgroundSetupGateDirectly() {
+  const modal = document.getElementById('mandatorySetupModal');
+  if (modal) modal.classList.remove('hidden');
+  checkMandatoryNotificationSetup(true);
+}
+
+function checkMandatoryNotificationSetup(forceShow) {
   const modal = document.getElementById('mandatorySetupModal');
   if (!modal) return;
 
@@ -1847,7 +1853,36 @@ function checkMandatoryNotificationSetup() {
     notifsEnabled = true;
   }
 
-  // Update Step 1 Badge
+  // Detect Phone Manufacturer
+  let manufacturer = "Android";
+  if (isNative && window.TahweshaNative.getDeviceManufacturer) {
+    try {
+      manufacturer = window.TahweshaNative.getDeviceManufacturer() || "Android";
+    } catch (e) {}
+  }
+  const phoneLabel = document.getElementById('mandatoryDetectedPhone');
+  const oemAdvice = document.getElementById('mandatoryOemAdvice');
+  if (phoneLabel) {
+    phoneLabel.innerText = manufacturer.toUpperCase();
+  }
+  if (oemAdvice) {
+    const m = manufacturer.toLowerCase();
+    if (m.includes('xiaomi') || m.includes('redmi') || m.includes('poco')) {
+      oemAdvice.innerText = "شاومي / بوكو: يتطلب التشغيل التلقائي وقفل التطبيق برمز القفل 🔒";
+    } else if (m.includes('samsung')) {
+      oemAdvice.innerText = "سامسونج: اضبط البطارية على (غير مقيد) وألغِ وضع السكون";
+    } else if (m.includes('oppo') || m.includes('realme') || m.includes('oneplus')) {
+      oemAdvice.innerText = "أوبو / ريلمي: اسمح ببدء التشغيل التلقائي والتشغيل في الخلفية";
+    } else if (m.includes('vivo') || m.includes('iqoo')) {
+      oemAdvice.innerText = "فيفو: فعّل الإذن العالي للتشغيل التلقائي في الخلفية";
+    } else if (m.includes('huawei') || m.includes('honor')) {
+      oemAdvice.innerText = "هواوي: فعّل الإدارة اليدوية في إعدادات البطارية";
+    } else {
+      oemAdvice.innerText = "يتطلب إعفاء البطارية والتشغيل التلقائي لضمان الأذان 24 ساعة";
+    }
+  }
+
+  // Update Step 1 Badge (Notifications)
   const b1 = document.getElementById('mandatoryStep1Badge');
   if (b1) {
     if (notifsEnabled) {
@@ -1859,25 +1894,40 @@ function checkMandatoryNotificationSetup() {
     }
   }
 
-  // Update Step 2 Badge
+  // Update Step 2 Badge (Battery Optimization)
   const b2 = document.getElementById('mandatoryStep2Badge');
   if (b2 && isNative && window.TahweshaNative.isBatteryOptimizationIgnored) {
     try {
       const unconstrained = window.TahweshaNative.isBatteryOptimizationIgnored();
       if (unconstrained) {
         b2.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        b2.innerText = "غير مقيد ✅";
+        b2.innerText = "بلا قيود ✅";
       } else {
         b2.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
-        b2.innerText = "موصى به بشدة ⚙️";
+        b2.innerText = "مطلوب للعمل بالخلفية ⚙️";
       }
     } catch (e) {}
   }
 
-  const alreadyDone = localStorage.getItem('tahwesha_mandatory_setup_done') === 'true';
+  // Update Step 3 Badge (Exact Alarms)
+  const b3 = document.getElementById('mandatoryStep3Badge');
+  if (b3 && isNative && window.TahweshaNative.isExactAlarmPermissionGranted) {
+    try {
+      const exactGranted = window.TahweshaNative.isExactAlarmPermissionGranted();
+      if (exactGranted) {
+        b3.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        b3.innerText = "مصرح به ✅";
+      } else {
+        b3.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        b3.innerText = "مطلوب لمواقيت الأذان ⏰";
+      }
+    } catch (e) {}
+  }
+
+  const alreadyDone = localStorage.getItem('tahwesha_mandatory_setup_done') === 'v2.6.4';
 
   // If notifications are disabled (or initial setup hasn't been completed in native app), enforce mandatory modal
-  if (!notifsEnabled || (!alreadyDone && isNative)) {
+  if (forceShow === true || !notifsEnabled || (!alreadyDone && isNative)) {
     modal.classList.remove('hidden');
   } else {
     modal.classList.add('hidden');
@@ -1899,7 +1949,7 @@ function handleMandatoryStep1() {
   } else if (window.TahweshaNative && window.TahweshaNative.openNotificationSettings) {
     window.TahweshaNative.openNotificationSettings();
   } else if (typeof Notification !== 'undefined' && Notification.requestPermission) {
-    Notification.requestPermission().then(() => checkMandatoryNotificationSetup());
+    Notification.requestPermission().then(() => checkMandatoryNotificationSetup(true));
   }
 
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
@@ -1908,7 +1958,7 @@ function handleMandatoryStep1() {
     } catch (e) {}
   }
 
-  setTimeout(checkMandatoryNotificationSetup, 1200);
+  setTimeout(() => checkMandatoryNotificationSetup(true), 1200);
 }
 
 function handleMandatoryBatteryExemption() {
@@ -1921,7 +1971,20 @@ function handleMandatoryBatteryExemption() {
   } else if (window.TahweshaNative && window.TahweshaNative.openAutoStartSettings) {
     window.TahweshaNative.openAutoStartSettings();
   }
-  setTimeout(checkMandatoryNotificationSetup, 1200);
+  setTimeout(() => checkMandatoryNotificationSetup(true), 1200);
+}
+
+function handleMandatoryExactAlarms() {
+  if (window.TahweshaNative && window.TahweshaNative.openAlarmsAndRemindersSettings) {
+    try {
+      window.TahweshaNative.openAlarmsAndRemindersSettings();
+    } catch (e) {
+      console.warn("openAlarmsAndRemindersSettings error:", e);
+    }
+  } else if (window.TahweshaNative && window.TahweshaNative.openNotificationSettings) {
+    window.TahweshaNative.openNotificationSettings();
+  }
+  setTimeout(() => checkMandatoryNotificationSetup(true), 1200);
 }
 
 function handleMandatoryAutoStart() {
@@ -1932,15 +1995,37 @@ function handleMandatoryAutoStart() {
       console.warn("openAutoStartSettings error:", e);
     }
   }
+  setTimeout(() => checkMandatoryNotificationSetup(true), 1200);
 }
 
-function handleMandatoryTest5s() {
+function handleMandatoryDisplayOverApps() {
+  if (window.TahweshaNative && window.TahweshaNative.openDisplayOverAppsSettings) {
+    try {
+      window.TahweshaNative.openDisplayOverAppsSettings();
+    } catch (e) {
+      console.warn("openDisplayOverAppsSettings error:", e);
+    }
+  } else if (window.TahweshaNative && window.TahweshaNative.openSpecialPermissions) {
+    window.TahweshaNative.openSpecialPermissions();
+  }
+  setTimeout(() => checkMandatoryNotificationSetup(true), 1200);
+}
+
+function handleMandatoryTest10s() {
   const fb = document.getElementById('mandatoryTestFeedback');
   if (fb) {
     fb.classList.remove('hidden');
-    fb.innerHTML = `⏳ جاري إطلاق الإشعار بعد 5 ثوانٍ... اقفل شاشة هاتفك الآن لتجربته مع الصوت والاهتزاز!`;
+    fb.innerHTML = `⏱️ تم ضبط التنبيه بعد 10 ثوانٍ! <br><strong class="text-white">اخرج وامسح التطبيق من الخلفية فوراً الآن</strong> لتشاهد ظهور التنبيه بنفسك مع الصوت والاهتزاز!`;
   }
-  testInstantNotification5s();
+  if (window.TahweshaNative && window.TahweshaNative.testNotificationInSeconds) {
+    window.TahweshaNative.testNotificationInSeconds(10);
+  } else {
+    testInstantNotification5s();
+  }
+}
+
+function handleMandatoryTest5s() {
+  handleMandatoryTest10s();
 }
 
 function finishMandatorySetup() {
@@ -1960,16 +2045,19 @@ function finishMandatorySetup() {
   const err = document.getElementById('mandatoryErrorHint');
 
   if (!notifsEnabled) {
-    if (err) err.classList.remove('hidden');
+    if (err) {
+      err.classList.remove('hidden');
+      err.innerText = "⚠️ يرجى تفعيل إذن الإشعارات أولاً بالضغط على الزر رقم 1 للدخول إلى التطبيق!";
+    }
     handleMandatoryStep1();
     return;
   }
 
   if (err) err.classList.add('hidden');
-  localStorage.setItem('tahwesha_mandatory_setup_done', 'true');
+  localStorage.setItem('tahwesha_mandatory_setup_done', 'v2.6.4');
   const modal = document.getElementById('mandatorySetupModal');
   if (modal) modal.classList.add('hidden');
-  showToast('تم تفعيل التنبيهات الدائمة بنجاح! تقبل الله طاعاتكم 📿✨', 'success');
+  showToast('تم ضبط إعدادات الهاتف بنجاح! التنبيهات والأذان ستعمل 24 ساعة بدون انقطاع 📿✨', 'success');
 }
 
 // ---------------- MOBILE & DESKTOP FLOATING HEADS-UP NOTIFICATIONS ---------------- //

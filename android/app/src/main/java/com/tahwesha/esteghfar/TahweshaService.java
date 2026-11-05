@@ -52,6 +52,7 @@ public class TahweshaService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         promoteToForeground();
+        TahweshaReminderManager.ensureAlarmsScheduled(getApplicationContext());
         return START_STICKY; // Ensures Android automatically restarts the service if killed
     }
 
@@ -94,27 +95,8 @@ public class TahweshaService extends Service {
     }
 
     private void startPeriodicReminders() {
-        handler = new Handler(Looper.getMainLooper());
-        periodicRunnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // Send an actual Azkar notification
-                    TahweshaAlarmReceiver.showImmediateNotification(
-                        getApplicationContext(),
-                        "📿 ذكر واستغفار • تحويشة استغفار",
-                        TahweshaReminderManager.getNextAzkar()
-                    );
-                } catch (Exception e) {
-                    Log.e(TAG, "Error in periodic reminder execution", e);
-                }
-                // Schedule next run in 25 minutes
-                handler.postDelayed(this, 25 * 60 * 1000L);
-            }
-        };
-
-        // First run staggered after 2 minutes so user quickly sees that reminders work!
-        handler.postDelayed(periodicRunnable, 2 * 60 * 1000L);
+        // Enforce AlarmManager scheduling across all types so Android handles wakeups via kernel RTC alarms
+        TahweshaReminderManager.ensureAlarmsScheduled(getApplicationContext());
     }
 
     private Notification buildStickyNotification() {

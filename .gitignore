@@ -12,6 +12,7 @@ android/local.properties
 
 # Binaries & APKs
 *.apk
+!tahweshat-esteghfar*.apk
 *.exe
 
 # Logs & Temp
