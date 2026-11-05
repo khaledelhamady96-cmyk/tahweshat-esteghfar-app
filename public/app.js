@@ -3,20 +3,12 @@
  * بركة الرزق ونور الاستغفار
  */
 
-// Global State
-const BUILD_APP_VERSION = "2.6.1";
-let CURRENT_APP_VERSION = (() => {
-  try {
-    const cached = localStorage.getItem("tahwesha_app_version");
-    if (!cached || compareVersions(BUILD_APP_VERSION, cached) > 0) {
-      localStorage.setItem("tahwesha_app_version", BUILD_APP_VERSION);
-      return BUILD_APP_VERSION;
-    }
-    return cached;
-  } catch (e) {
-    return BUILD_APP_VERSION;
-  }
-})();
+// Global State - Strictly anchored to actual built assets version
+const BUILD_APP_VERSION = "2.6.2";
+let CURRENT_APP_VERSION = BUILD_APP_VERSION;
+try {
+  localStorage.setItem("tahwesha_app_version", BUILD_APP_VERSION);
+} catch (e) {}
 let currentUser = null;
 let currentFinancials = null;
 let currentVehicles = [];
@@ -3248,15 +3240,34 @@ let _pendingLiveUpdate = null;
 function downloadAndInstallApk() {
   const defaultUrl = "https://github.com/khaledelhamady96-cmyk/tahweshat-esteghfar-app/raw/main/tahweshat-esteghfar.apk";
   const url = (_pendingLiveUpdate && _pendingLiveUpdate.downloadUrl) || defaultUrl;
-  try {
-    if (window.Capacitor) {
-      window.open(url, '_system');
-    } else {
+  
+  const pbContainer = document.getElementById('updateProgressBarContainer');
+  const pbText = document.getElementById('updateProgressText');
+  const pbPercent = document.getElementById('updateProgressPercent');
+  const pbBar = document.getElementById('updateProgressBar');
+  if (pbContainer) pbContainer.classList.remove('hidden');
+  if (pbText) pbText.innerText = "جاري فتح رابط التحميل المباشر للتحديث...";
+  if (pbPercent) pbPercent.innerText = "100%";
+  if (pbBar) pbBar.style.width = "100%";
+
+  triggerFloatingAlertEverywhere({
+    type: "system_update",
+    title: "⚡ جاري تحميل التحديث",
+    content: "فور اكتمال التنزيل، اضغط على إشعار التحميل لتثبيت التحديث مباشرة فوق التطبيق الحالي دون فقد أي بيانات.",
+    subNote: "تحديث ترقية رسمي وآمن 100%"
+  });
+
+  setTimeout(() => {
+    try {
+      if (window.Capacitor) {
+        window.open(url, '_system');
+      } else {
+        window.location.href = url;
+      }
+    } catch (e) {
       window.location.href = url;
     }
-  } catch (e) {
-    window.location.href = url;
-  }
+  }, 400);
 }
 
 async function checkForAppUpdates(silent = true) {
@@ -3406,7 +3417,7 @@ async function handlePublishLiveUpdate() {
 
   try {
     if (typeof FirebaseSync !== 'undefined' && FirebaseSync.publishLiveUpdate) {
-      const res = await FirebaseSync.publishLiveUpdate(version, title, notes, { forceApply: true });
+      const res = await FirebaseSync.publishLiveUpdate(version, title, notes, { forceApply: false, forceUpdate: true });
       if (res.success) {
         CURRENT_APP_VERSION = version;
         localStorage.setItem('tahwesha_app_version', version);
@@ -3418,7 +3429,7 @@ async function handlePublishLiveUpdate() {
           subNote: "تم النشر اللحظي لجميع المشتركين عبر سحابة فايربيز"
         });
 
-        alert(`تم نشر التحديث (v${version}) بنجاح عبر السحابة!\nسيتم تثبيته تلقائياً على أجهزة جميع المشتركين فوراً دون تحميل APK.`);
+        alert(`تم نشر التحديث (v${version}) بنجاح عبر السحابة!\nستظهر نافذة الترقية المباشرة لجميع المشتركين فوراً.`);
       } else {
         alert("تنبيه: " + (res.error || "تعذر نشر التحديث للسحابة"));
       }

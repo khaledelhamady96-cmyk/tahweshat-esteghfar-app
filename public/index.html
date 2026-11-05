@@ -1931,17 +1931,19 @@
         </div>
       </div>
 
-      <div class="space-y-2 pt-1" id="updateModalButtonsContainer">
-        <!-- Primary Action: Direct Download & Install APK Update -->
-        <button id="updateModalDownloadBtn" type="button" onclick="downloadAndInstallApk()" class="w-full py-3 bg-gradient-to-r from-emerald-500 via-brand-600 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all">
-          <i class="fa-solid fa-download text-yellow-300"></i>
-          <span>تحميل وتثبيت التحديث الآن 🚀</span>
-        </button>
+      <div class="space-y-2.5 pt-1" id="updateModalButtonsContainer">
+        <!-- Reassurance Banner -->
+        <div class="bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-2.5 text-right flex items-start gap-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-sm mt-0.5 shrink-0"></i>
+          <p class="text-[11px] text-emerald-200 leading-tight">
+            <strong>تحديث ترقية فوري وآمن 100%:</strong> يتم التثبيت فوق التطبيق الحالي مباشرة دون حذف، وجميع حساباتك وسياراتك ومصاريفك وتسبيحك محفوظة بالكامل دون أي فقدان.
+          </p>
+        </div>
 
-        <!-- Secondary Instant Live Patch Reload -->
-        <button id="updateModalInstantApplyBtn" type="button" onclick="applyLiveUpdateNow()" class="w-full py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 block">
-          <i class="fa-solid fa-bolt text-yellow-400"></i>
-          <span>تطبيق وتنشيط التعديلات فوراً ⚡</span>
+        <!-- Primary Action: Direct Download & Install APK Update -->
+        <button id="updateModalDownloadBtn" type="button" onclick="downloadAndInstallApk()" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-2xl text-xs font-black shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all">
+          <i class="fa-solid fa-cloud-arrow-down text-yellow-300 text-base"></i>
+          <span>تحديث التطبيق الآن بضغطة واحدة 🚀</span>
         </button>
 
         <button id="updateModalDismissBtn" type="button" onclick="closeUpdateModal()" class="w-full py-1.5 text-slate-400 hover:text-white text-xs font-bold">
