@@ -157,6 +157,43 @@ public class MainActivity extends BridgeActivity {
                             TahweshaReminderManager.getNextAzkar()
                         );
                     }
+
+                    @JavascriptInterface
+                    public void schedulePrayerAlarms(long fajr, long dhuhr, long asr, long maghrib, long isha, String voiceKey) {
+                        TahweshaReminderManager.schedulePrayerAlarms(MainActivity.this, fajr, dhuhr, asr, maghrib, isha, voiceKey);
+                    }
+
+                    @JavascriptInterface
+                    public void setSelectedAthanVoice(String voiceKey) {
+                        getSharedPreferences("tahwesha_prefs", Context.MODE_PRIVATE)
+                            .edit()
+                            .putString("selected_athan_voice", voiceKey)
+                            .apply();
+                    }
+
+                    @JavascriptInterface
+                    public void playNativeAthanPreview(String voiceKey) {
+                        setSelectedAthanVoice(voiceKey);
+                        TahweshaAlarmReceiver.playAthanSound(MainActivity.this);
+                    }
+
+                    @JavascriptInterface
+                    public void stopNativeAthan() {
+                        TahweshaAlarmReceiver.stopAthanPlayer();
+                    }
+
+                    @JavascriptInterface
+                    public void testAthanInSeconds(int seconds, String voiceKey) {
+                        setSelectedAthanVoice(voiceKey);
+                        TahweshaReminderManager.scheduleSingleAlarm(
+                            MainActivity.this,
+                            TahweshaReminderManager.TYPE_PRAYER,
+                            seconds * 1000L,
+                            8888,
+                            "🕌 تجربة أذان حقيقي • تحويشة استغفار",
+                            "الله أكبر، الله أكبر • تجربة ناجحة للأذان وشاشتك مقفولة!"
+                        );
+                    }
                 }, "TahweshaNative");
             }
         } catch (Exception e) {

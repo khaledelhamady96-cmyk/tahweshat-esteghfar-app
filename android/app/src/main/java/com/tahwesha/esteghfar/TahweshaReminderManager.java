@@ -16,6 +16,8 @@ public class TahweshaReminderManager {
     public static final String TYPE_DUAA = "type_duaa";
     public static final String TYPE_VEHICLE = "type_vehicle";
     public static final String TYPE_FINANCIAL = "type_financial";
+    public static final String TYPE_PRAYER = "prayer";
+    public static final int PRAYER_ALARM_BASE_ID = 3000;
 
     private static final String[] AZKAR_ITEMS = {
         "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ (غُفِرَتْ ذُنُوبُهُ وَإِنْ كَانَ فَرَّ مِنَ الزَّحْفِ)",
@@ -140,11 +142,65 @@ public class TahweshaReminderManager {
             id = 2005;
             title = "💳 تنبيه الأقساط والمستحقات المالية";
             body = "تذكير: لديك مواعيد استحقاق أقساط وجمعيات ومستحقات مسجلة في خطتك المالية.";
+        } else if (TYPE_PRAYER.equals(type)) {
+            delayMillis = 24 * 60 * 60 * 1000L; // Re-schedule next day
+            id = 3001;
+            title = "🕌 حان الآن موعد الصلاة والأذان";
+            body = "حي على الصلاة • حي على الفلاح";
         } else {
             return;
         }
 
         scheduleSingleAlarm(context, type, delayMillis, id, title, body);
+    }
+
+    public static void schedulePrayerAlarms(
+        Context context,
+        long fajrMillis,
+        long dhuhrMillis,
+        long asrMillis,
+        long maghribMillis,
+        long ishaMillis,
+        String voiceKey
+    ) {
+        if (context == null) return;
+        try {
+            if (voiceKey != null && !voiceKey.isEmpty()) {
+                context.getSharedPreferences("tahwesha_prefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putString("selected_athan_voice", voiceKey)
+                    .apply();
+            }
+
+            long now = System.currentTimeMillis();
+            long dayMillis = 24 * 60 * 60 * 1000L;
+
+            long[] prayerTimes = new long[]{ fajrMillis, dhuhrMillis, asrMillis, maghribMillis, ishaMillis };
+            String[] prayerNames = new String[]{ "الفجر", "الظهر", "العصر", "المغرب", "العشاء" };
+            String[] prayerSubtext = new String[]{
+                "الصلاة خير من النوم • الصلاة خير من النوم",
+                "حي على الصلاة • حي على الفلاح",
+                "حي على الصلاة • حي على الفلاح",
+                "حي على الصلاة • حي على الفلاح",
+                "حي على الصلاة • حي على الفلاح"
+            };
+
+            for (int i = 0; i < 5; i++) {
+                long target = prayerTimes[i];
+                if (target <= now) {
+                    target += dayMillis; // Past for today, schedule for tomorrow!
+                }
+                long delay = target - now;
+                int alarmId = PRAYER_ALARM_BASE_ID + (i + 1);
+                String title = "🕌 حان الآن موعد أذان صلاة " + prayerNames[i];
+                String body = prayerSubtext[i] + " • تقبل الله طاعتكم";
+
+                scheduleSingleAlarm(context, TYPE_PRAYER, delay, alarmId, title, body);
+                Log.d(TAG, "Scheduled Prayer " + prayerNames[i] + " in " + (delay / 1000 / 60) + " minutes (id=" + alarmId + ")");
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "schedulePrayerAlarms failed", t);
+        }
     }
 
     public static void scheduleSingleAlarm(Context context, String type, long delayMillis, int id, String title, String body) {

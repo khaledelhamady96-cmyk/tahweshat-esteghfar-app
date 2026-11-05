@@ -4,7 +4,7 @@
  */
 
 // Global State
-const BUILD_APP_VERSION = "2.5.5";
+const BUILD_APP_VERSION = "2.6.0";
 let CURRENT_APP_VERSION = (() => {
   try {
     const cached = localStorage.getItem("tahwesha_app_version");
@@ -617,6 +617,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initMobileNotifications();
   await loadSubscriberStats();
   initPrayerTimesEngine();
+  initAthanVoiceEngine();
+  initQuranCenter();
   initSecurityLock();
   initRealtimeCloudListeners();
   checkNotificationStatusOnStartup();
@@ -3711,6 +3713,7 @@ function updatePrayerTimesUI() {
   }).join('');
 
   updateNextPrayerCountdown();
+  syncPrayerAlarmsWithNative();
 }
 
 function updateNextPrayerCountdown() {
@@ -3846,11 +3849,36 @@ function toggleAthanSoundPreference() {
 }
 
 function playAthanChime() {
+  if (!window.isAthanSoundEnabled) return;
+  const voice = localStorage.getItem('tahwesha_athan_voice') || 'mishary';
+
+  // 1. If running inside native Android app, use native MediaPlayer & Alarm stream
+  if (window.TahweshaNative && window.TahweshaNative.playNativeAthanPreview) {
+    try {
+      window.TahweshaNative.playNativeAthanPreview(voice);
+      return;
+    } catch (e) {
+      console.warn("TahweshaNative athan error:", e);
+    }
+  }
+
+  // 2. Play high quality HTML5 Audio in Web / Foreground
+  try {
+    const audioPath = `assets/audio/athan/${voice}.mp3`;
+    const audio = new Audio(audioPath);
+    audio.play().catch(e => {
+      console.debug("HTML5 audio playback error, fallback to chime:", e);
+      playFallbackWebAudioChime();
+    });
+  } catch (e) {
+    playFallbackWebAudioChime();
+  }
+}
+
+function playFallbackWebAudioChime() {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const now = audioCtx.currentTime;
-
-    // Harmonic spiritual Takbeer chime chord (C4 - E4 - G4 - C5)
     const notes = [261.63, 329.63, 392.00, 523.25];
     notes.forEach((freq, idx) => {
       const osc = audioCtx.createOscillator();
@@ -3865,9 +3893,495 @@ function playAthanChime() {
       osc.start(now + idx * 0.15);
       osc.stop(now + idx * 0.15 + 2);
     });
+  } catch (e) {}
+}
+
+function syncPrayerAlarmsWithNative() {
+  if (!window.calculatedPrayerTimesToday) return;
+  if (!window.TahweshaNative || !window.TahweshaNative.schedulePrayerAlarms) return;
+
+  try {
+    const today = new Date();
+    const voice = localStorage.getItem('tahwesha_athan_voice') || 'mishary';
+
+    function prayerTimeToEpoch(p) {
+      if (!p || typeof p.totalMinutes !== 'number') return Date.now();
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate(), Math.floor(p.totalMinutes / 60), p.totalMinutes % 60, 0, 0);
+      return d.getTime();
+    }
+
+    const fajrEpoch = prayerTimeToEpoch(window.calculatedPrayerTimesToday.fajr);
+    const dhuhrEpoch = prayerTimeToEpoch(window.calculatedPrayerTimesToday.dhuhr);
+    const asrEpoch = prayerTimeToEpoch(window.calculatedPrayerTimesToday.asr);
+    const maghribEpoch = prayerTimeToEpoch(window.calculatedPrayerTimesToday.maghrib);
+    const ishaEpoch = prayerTimeToEpoch(window.calculatedPrayerTimesToday.isha);
+
+    window.TahweshaNative.schedulePrayerAlarms(fajrEpoch, dhuhrEpoch, asrEpoch, maghribEpoch, ishaEpoch, voice);
+    console.log("[Athan] Prayer alarms successfully synchronized with Android AlarmManager");
   } catch (e) {
-    console.debug("Athan audio notice:", e);
+    console.warn("syncPrayerAlarmsWithNative error:", e);
   }
+}
+
+// ---------------- ATHAN VOICE & MUEZZIN ENGINE ---------------- //
+let athanPreviewAudio = null;
+
+function initAthanVoiceEngine() {
+  const voice = localStorage.getItem('tahwesha_athan_voice') || 'mishary';
+  updateAthanVoiceRadioUI(voice);
+  updateAthanActiveVoiceBadge(voice);
+}
+
+function updateAthanActiveVoiceBadge(voiceKey) {
+  const names = {
+    mishary: "العفاسي 🎙️",
+    makkah: "الحرم المكي 🎙️",
+    madinah: "الحرم النبوي 🎙️",
+    abdulbasit: "عبد الباسط 🎙️",
+    qatami: "القطامي 🎙️"
+  };
+  const label = document.getElementById('athanVoiceActiveLabel');
+  if (label) {
+    label.innerText = names[voiceKey] || "صوت المؤذن 🎙️";
+  }
+}
+
+function updateAthanVoiceRadioUI(voiceKey) {
+  const radio = document.getElementById('voice_' + voiceKey);
+  if (radio) radio.checked = true;
+
+  document.querySelectorAll('.athan-voice-card').forEach(card => {
+    if (card.getAttribute('data-voice') === voiceKey) {
+      card.classList.add('border-emerald-500', 'bg-emerald-950/20');
+      card.classList.remove('border-slate-800', 'bg-slate-900');
+    } else {
+      card.classList.remove('border-emerald-500', 'bg-emerald-950/20');
+      card.classList.add('border-slate-800', 'bg-slate-900');
+    }
+  });
+}
+
+function openAthanVoiceModal() {
+  const modal = document.getElementById('athanVoiceModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  const voice = localStorage.getItem('tahwesha_athan_voice') || 'mishary';
+  updateAthanVoiceRadioUI(voice);
+}
+
+function closeAthanVoiceModal() {
+  stopAllAthanAudioPreview();
+  const modal = document.getElementById('athanVoiceModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function selectAthanVoice(voiceKey) {
+  updateAthanVoiceRadioUI(voiceKey);
+}
+
+function previewAthanVoice(voiceKey) {
+  stopAllAthanAudioPreview();
+
+  const icon = document.getElementById('previewIcon_' + voiceKey);
+  if (icon) icon.className = "fa-solid fa-spinner fa-spin text-[10px]";
+
+  // 1. In native Android app, use MediaPlayer
+  if (window.TahweshaNative && window.TahweshaNative.playNativeAthanPreview) {
+    try {
+      window.TahweshaNative.playNativeAthanPreview(voiceKey);
+      if (icon) icon.className = "fa-solid fa-volume-high text-[10px]";
+      return;
+    } catch (e) {
+      console.warn("playNativeAthanPreview notice:", e);
+    }
+  }
+
+  // 2. In Web / Browser preview, use HTML5 Audio
+  try {
+    const audioPath = `assets/audio/athan/${voiceKey}.mp3`;
+    athanPreviewAudio = new Audio(audioPath);
+    athanPreviewAudio.play().then(() => {
+      if (icon) icon.className = "fa-solid fa-pause text-[10px]";
+    }).catch(e => {
+      console.warn("Audio preview play error:", e);
+      if (icon) icon.className = "fa-solid fa-play text-[10px]";
+    });
+
+    athanPreviewAudio.onended = () => {
+      if (icon) icon.className = "fa-solid fa-play text-[10px]";
+    };
+  } catch (e) {
+    console.warn("previewAthanVoice error:", e);
+  }
+}
+
+function stopAllAthanAudioPreview() {
+  if (window.TahweshaNative && window.TahweshaNative.stopNativeAthan) {
+    try {
+      window.TahweshaNative.stopNativeAthan();
+    } catch (e) {}
+  }
+  if (athanPreviewAudio) {
+    try {
+      athanPreviewAudio.pause();
+      athanPreviewAudio.currentTime = 0;
+    } catch (e) {}
+    athanPreviewAudio = null;
+  }
+  ['mishary', 'makkah', 'madinah', 'abdulbasit', 'qatami'].forEach(k => {
+    const ic = document.getElementById('previewIcon_' + k);
+    if (ic) ic.className = "fa-solid fa-play text-[10px]";
+  });
+}
+
+function saveAthanVoiceSettings() {
+  const checked = document.querySelector('input[name="athanVoiceRadio"]:checked');
+  const selected = checked ? checked.value : 'mishary';
+
+  localStorage.setItem('tahwesha_athan_voice', selected);
+  if (window.TahweshaNative && window.TahweshaNative.setSelectedAthanVoice) {
+    try {
+      window.TahweshaNative.setSelectedAthanVoice(selected);
+    } catch (e) {}
+  }
+
+  updateAthanActiveVoiceBadge(selected);
+  closeAthanVoiceModal();
+  syncPrayerAlarmsWithNative();
+
+  const names = {
+    mishary: "الشيخ مشاري العفاسي",
+    makkah: "أذان الحرم المكي الشريف",
+    madinah: "أذان المسجد النبوي الشريف",
+    abdulbasit: "الشيخ عبد الباسط عبد الصمد",
+    qatami: "الشيخ ناصر القطامي"
+  };
+  showToast(`تم تعيين صوت الأذان: ${names[selected] || selected} بنجاح 🕌✨`, 'success');
+}
+
+function testAthanVoice5s() {
+  const fb = document.getElementById('athanTestFeedback');
+  const checked = document.querySelector('input[name="athanVoiceRadio"]:checked');
+  const selected = checked ? checked.value : (localStorage.getItem('tahwesha_athan_voice') || 'mishary');
+
+  if (fb) {
+    fb.classList.remove('hidden');
+    fb.innerHTML = `⏳ جاري ضبط الأذان... اقفل شاشة هاتفك الآن لتجربة سماع الأذان بعد 5 ثوانٍ!`;
+  }
+
+  if (window.TahweshaNative && window.TahweshaNative.testAthanInSeconds) {
+    try {
+      window.TahweshaNative.testAthanInSeconds(5, selected);
+    } catch (e) {
+      console.warn("testAthanInSeconds error:", e);
+    }
+  } else {
+    setTimeout(() => {
+      previewAthanVoice(selected);
+    }, 5000);
+  }
+
+  setTimeout(() => {
+    if (fb) {
+      fb.innerHTML = `✅ تم إطلاق الأذان التجريبي بنجاح! للتأكد افحص الصوت وشاشة القفل.`;
+    }
+  }, 6500);
+}
+
+// ==============================================================================
+// 3. FULL HOLY QURAN ENGINE & BOOKMARK SYSTEM (المصحف الشريف وفاصل القراءة)
+// ==============================================================================
+
+window.currentReadingSurahId = 1;
+window.quranFontSize = parseInt(localStorage.getItem('tahwesha_quran_font_size') || '20');
+window.isQuranDayMode = (localStorage.getItem('tahwesha_quran_day_mode') === 'true');
+
+function initQuranCenter() {
+  renderSurahsDirectory();
+  updateQuranBookmarkDisplay();
+}
+
+function getSavedQuranBookmark() {
+  try {
+    const raw = localStorage.getItem('tahwesha_quran_bookmark');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    surahId: 1,
+    surahName: "الفاتحة",
+    ayahId: 1,
+    ayahText: "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
+    savedAt: "البداية"
+  };
+}
+
+function updateQuranBookmarkDisplay() {
+  const bm = getSavedQuranBookmark();
+  setElText('dashboardBookmarkSurahName', `سورة ${bm.surahName}`);
+  setElText('dashboardBookmarkAyahNum', bm.ayahId);
+  setElText('dashboardBookmarkAyahSnippet', bm.ayahText ? `« ${bm.ayahText} »` : `الآية رقم ${bm.ayahId}`);
+  setElText('quranActiveBookmarkText', `سورة ${bm.surahName} • الآية ${bm.ayahId}`);
+}
+
+function renderSurahsDirectory(filterText = '') {
+  const container = document.getElementById('quranSurahsGridContainer');
+  if (!container) return;
+
+  if (!window.FULL_QURAN_DATA || !window.FULL_QURAN_DATA.length) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-6 text-slate-400 text-xs">
+        <i class="fa-solid fa-spinner fa-spin text-amber-400 text-base mb-1 block"></i>
+        جاري تحميل فهرس المصحف الشريف...
+      </div>
+    `;
+    return;
+  }
+
+  const query = (filterText || '').trim();
+  const surahs = window.FULL_QURAN_DATA.filter(s => {
+    if (!query) return true;
+    return s.name.includes(query) || String(s.id).includes(query);
+  });
+
+  if (surahs.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-6 text-slate-400 text-xs">
+        لا توجد سورة مطابقة لـ "${query}"
+      </div>
+    `;
+    return;
+  }
+
+  const bm = getSavedQuranBookmark();
+
+  container.innerHTML = surahs.map(s => {
+    const isBookmarkedSurah = (bm && bm.surahId === s.id);
+    return `
+      <div onclick="openQuranReader(${s.id})" class="p-2.5 rounded-2xl ${isBookmarkedSurah ? 'bg-amber-950/60 border border-amber-500/70 shadow-md shadow-amber-950/40' : 'bg-slate-950 border border-slate-800/80 hover:border-amber-500/40'} flex items-center justify-between cursor-pointer active:scale-95 transition-all text-right group">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-300 font-bold font-mono text-[11px] group-hover:bg-amber-500 group-hover:text-black transition-colors">
+            ${s.id}
+          </div>
+          <div>
+            <h4 class="text-xs font-black text-white font-quran group-hover:text-amber-300 transition-colors">
+              سورة ${s.name}
+            </h4>
+            <span class="text-[9px] text-slate-400">${s.type} • ${s.total_verses} آية</span>
+          </div>
+        </div>
+        ${isBookmarkedSurah ? '<span class="text-xs" title="آخر موضع توقفت عنده">🔖</span>' : '<i class="fa-solid fa-chevron-left text-[10px] text-slate-600 group-hover:text-slate-300"></i>'}
+      </div>
+    `;
+  }).join('');
+}
+
+function filterSurahsList(val) {
+  renderSurahsDirectory(val);
+}
+
+function openQuranReader(surahId, targetAyahId = null) {
+  if (!window.FULL_QURAN_DATA || !window.FULL_QURAN_DATA.length) {
+    showToast('جاري تحميل المصحف الشريف، يرجى الانتظار ثانية واحدة...', 'info');
+    return;
+  }
+
+  const s = window.FULL_QURAN_DATA.find(x => x.id === surahId);
+  if (!s) return;
+
+  window.currentReadingSurahId = surahId;
+
+  // Header Details
+  setElText('quranCurrentSurahTitle', `سورة ${s.name}`);
+  setElText('quranCurrentSurahMeta', `${s.type} • عدد آياتها ${s.total_verses} • ترتيبها بالمصحف ${s.id}`);
+
+  // Basmalah handling (Surah 9 At-Tawbah does NOT start with Basmalah)
+  const basmalahBox = document.getElementById('quranBasmalahBox');
+  if (basmalahBox) {
+    if (s.id === 9 || s.id === 1) {
+      basmalahBox.classList.add('hidden');
+    } else {
+      basmalahBox.classList.remove('hidden');
+    }
+  }
+
+  // Render Verses
+  const container = document.getElementById('quranVersesContainer');
+  const bm = getSavedQuranBookmark();
+
+  container.innerHTML = s.verses.map(v => {
+    const isThisBookmarked = (bm && bm.surahId === s.id && bm.ayahId === v.id);
+    return `
+      <div id="ayah-box-${s.id}-${v.id}" class="ayah-item p-3 sm:p-4 rounded-2xl transition-all duration-300 ${isThisBookmarked ? 'bg-amber-950/40 border-2 border-amber-500 shadow-lg shadow-amber-950/50' : 'bg-slate-900/60 border border-slate-800/80 hover:border-slate-700'} space-y-2.5">
+        
+        <div class="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800/50 pb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-bold font-mono text-[10px] flex items-center justify-center">
+              ${v.id}
+            </span>
+            <span class="text-[11px] font-bold text-slate-300">الآية ${v.id}</span>
+            ${isThisBookmarked ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black">علامة التوقف الحالية 🔖</span>' : ''}
+          </div>
+
+          <!-- Bookmark Button -->
+          <button type="button" onclick="saveQuranBookmark(${s.id}, ${v.id}, '${v.ar.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-xl ${isThisBookmarked ? 'bg-amber-500 text-black font-black' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold'} text-[11px] flex items-center gap-1 border border-amber-500/40 active:scale-95 transition-all">
+            <i class="fa-solid fa-bookmark text-[10px]"></i>
+            <span>${isThisBookmarked ? 'علامتك المحفوظة 🔖' : 'وضع فاصل هنا 🔖'}</span>
+          </button>
+        </div>
+
+        <p class="font-quran leading-loose text-white text-right" style="font-size: ${window.quranFontSize}px;">
+          ${v.ar} <span class="text-amber-400 font-bold font-mono text-sm px-1">﴿${v.id}﴾</span>
+        </p>
+
+      </div>
+    `;
+  }).join('');
+
+  // Prev / Next Surah Buttons Update
+  const prevBtn = document.getElementById('quranPrevSurahBtn');
+  const nextBtn = document.getElementById('quranNextSurahBtn');
+  if (prevBtn) {
+    if (s.id <= 1) {
+      prevBtn.classList.add('opacity-40', 'pointer-events-none');
+    } else {
+      prevBtn.classList.remove('opacity-40', 'pointer-events-none');
+      const prevSurah = window.FULL_QURAN_DATA.find(x => x.id === s.id - 1);
+      setElText('quranPrevSurahText', prevSurah ? `سورة ${prevSurah.name}` : 'السورة السابقة');
+    }
+  }
+  if (nextBtn) {
+    if (s.id >= 114) {
+      nextBtn.classList.add('opacity-40', 'pointer-events-none');
+    } else {
+      nextBtn.classList.remove('opacity-40', 'pointer-events-none');
+      const nextSurah = window.FULL_QURAN_DATA.find(x => x.id === s.id + 1);
+      setElText('quranNextSurahText', nextSurah ? `سورة ${nextSurah.name}` : 'السورة التالية');
+    }
+  }
+
+  // Show Modal
+  const modal = document.getElementById('quranReaderModal');
+  if (modal) modal.classList.remove('hidden');
+
+  applyQuranTheme();
+  updateQuranBookmarkDisplay();
+
+  // Scroll to target ayah or top
+  setTimeout(() => {
+    if (targetAyahId) {
+      const el = document.getElementById(`ayah-box-${s.id}-${targetAyahId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-4', 'ring-amber-400');
+        setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+        return;
+      }
+    }
+    scrollToQuranTop();
+  }, 150);
+}
+
+function closeQuranReaderModal() {
+  const modal = document.getElementById('quranReaderModal');
+  if (modal) modal.classList.add('hidden');
+  renderSurahsDirectory();
+}
+
+function saveQuranBookmark(surahId, ayahId, ayahText) {
+  const s = window.FULL_QURAN_DATA ? window.FULL_QURAN_DATA.find(x => x.id === surahId) : null;
+  const surahName = s ? s.name : "سورة";
+  const snippet = ayahText ? ayahText.substring(0, 60) : "";
+
+  const bm = {
+    surahId,
+    surahName,
+    ayahId,
+    ayahText: snippet,
+    savedAt: new Date().toLocaleDateString('ar-EG')
+  };
+
+  localStorage.setItem('tahwesha_quran_bookmark', JSON.stringify(bm));
+
+  // Sync to Firebase Cloud if available
+  if (typeof FirebaseSync !== 'undefined' && FirebaseSync.syncUserData) {
+    try {
+      FirebaseSync.syncUserData({ quranBookmark: bm });
+    } catch (e) {}
+  }
+
+  updateQuranBookmarkDisplay();
+  showToast(`تم حفظ الفاصل القرآني عند: سورة ${surahName} • الآية ${ayahId} بنجاح 🔖✨`, 'success');
+
+  // Re-render current surah to reflect active bookmark
+  openQuranReader(surahId, ayahId);
+}
+
+function resumeFromSavedBookmark() {
+  const bm = getSavedQuranBookmark();
+  openQuranReader(bm.surahId, bm.ayahId);
+}
+
+function scrollToSavedBookmark() {
+  const bm = getSavedQuranBookmark();
+  if (bm.surahId === window.currentReadingSurahId) {
+    const el = document.getElementById(`ayah-box-${bm.surahId}-${bm.ayahId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-4', 'ring-amber-400');
+      setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2500);
+      return;
+    }
+  }
+  openQuranReader(bm.surahId, bm.ayahId);
+}
+
+function adjustQuranFontSize(delta) {
+  window.quranFontSize = Math.max(16, Math.min(36, window.quranFontSize + delta));
+  localStorage.setItem('tahwesha_quran_font_size', String(window.quranFontSize));
+  document.querySelectorAll('#quranVersesContainer p').forEach(p => {
+    p.style.fontSize = `${window.quranFontSize}px`;
+  });
+}
+
+function toggleQuranTheme() {
+  window.isQuranDayMode = !window.isQuranDayMode;
+  localStorage.setItem('tahwesha_quran_day_mode', String(window.isQuranDayMode));
+  applyQuranTheme();
+}
+
+function applyQuranTheme() {
+  const modal = document.getElementById('quranReaderModal');
+  const scrollArea = document.getElementById('quranVersesScrollArea');
+  const btn = document.getElementById('quranThemeToggleBtn');
+  if (!modal || !scrollArea) return;
+
+  if (window.isQuranDayMode) {
+    modal.className = "fixed inset-0 z-50 flex flex-col bg-amber-50 text-right";
+    scrollArea.className = "flex-1 overflow-y-auto p-4 sm:p-8 space-y-4 max-w-3xl mx-auto w-full bg-amber-50/90 text-slate-900";
+    if (btn) btn.innerText = "☀️";
+    document.querySelectorAll('#quranVersesContainer p').forEach(p => {
+      p.className = p.className.replace('text-white', 'text-slate-900 font-bold');
+    });
+  } else {
+    modal.className = "fixed inset-0 z-50 flex flex-col bg-slate-950 text-right";
+    scrollArea.className = "flex-1 overflow-y-auto p-4 sm:p-8 space-y-4 max-w-3xl mx-auto w-full bg-slate-950 text-slate-100";
+    if (btn) btn.innerText = "🌙";
+    document.querySelectorAll('#quranVersesContainer p').forEach(p => {
+      p.className = p.className.replace('text-slate-900 font-bold', 'text-white');
+    });
+  }
+}
+
+function navigateSurah(step) {
+  const target = window.currentReadingSurahId + step;
+  if (target >= 1 && target <= 114) {
+    openQuranReader(target);
+  }
+}
+
+function scrollToQuranTop() {
+  const scrollArea = document.getElementById('quranVersesScrollArea');
+  if (scrollArea) scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
