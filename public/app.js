@@ -4,7 +4,7 @@
  */
 
 // Global State
-const BUILD_APP_VERSION = "2.5.3";
+const BUILD_APP_VERSION = "2.5.4";
 let CURRENT_APP_VERSION = (() => {
   try {
     const cached = localStorage.getItem("tahwesha_app_version");
@@ -619,6 +619,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPrayerTimesEngine();
   initSecurityLock();
   initRealtimeCloudListeners();
+  checkNotificationStatusOnStartup();
   if (typeof updateShareCounterDisplay === 'function') updateShareCounterDisplay();
 
   // 1. Persistent User Session (Never log out when closing or exiting app)
@@ -1392,6 +1393,9 @@ function testFloatingAlert(type) {
 
   // 1. Immediate floating alert
   triggerFloatingAlertEverywhere(alertPayload);
+  if (window.TahweshaNative && window.TahweshaNative.showImmediateNotification) {
+    try { window.TahweshaNative.showImmediateNotification(); } catch (e) {}
+  }
 
   // 2. Schedule a 15-second alarm for lock-screen testing!
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
@@ -1401,7 +1405,7 @@ function testFloatingAlert(type) {
           id: 9999,
           title: alertPayload.title || "📿 ذكر واستغفار • تحويشة استغفار",
           body: alertPayload.content || alertPayload.message || "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-          channelId: 'tahwesha_heads_up_v4',
+          channelId: 'tahwesha_heads_up_v5',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#10B981',
           schedule: { at: new Date(Date.now() + 15000) },
@@ -1707,6 +1711,86 @@ window.updateShareCounterDisplay = function() {
   setElText('userShareCount', count);
 };
 
+// ---------------- NOTIFICATION DIAGNOSTICS & SYSTEM BRIDGE ---------------- //
+function checkNotificationStatusOnStartup() {
+  if (window.TahweshaNative && window.TahweshaNative.areNotificationsEnabled) {
+    try {
+      const enabled = window.TahweshaNative.areNotificationsEnabled();
+      const pill = document.getElementById('notifSysPermissionPill');
+      const text = document.getElementById('notifSysPermissionText');
+      if (pill && text) {
+        if (!enabled) {
+          pill.className = "self-start sm:self-auto px-2.5 py-1 rounded-xl text-[10px] font-bold bg-red-900/80 text-red-200 border border-red-500 cursor-pointer animate-pulse";
+          text.innerText = "⚠️ إذن الإشعارات مغلق! (اضغط لتفعيله)";
+          pill.onclick = () => {
+            if (window.TahweshaNative.openNotificationSettings) window.TahweshaNative.openNotificationSettings();
+          };
+        } else {
+          pill.className = "self-start sm:self-auto px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40";
+          text.innerText = "إذن النظام: مفعل ✅";
+        }
+      }
+    } catch (e) {
+      console.warn("checkNotificationStatus error:", e);
+    }
+  }
+}
+
+function testInstantNotification5s() {
+  const fb = document.getElementById('notifTestFeedbackBox');
+  if (fb) {
+    fb.classList.remove('hidden');
+    fb.innerHTML = `⏳ جاري ضبط الإشعار... اقفل شاشة هاتفك الآن لتجربته مع الصوت والاهتزاز بعد 5 ثوانٍ!`;
+  }
+
+  // 1. Native Android Alarm & Service call via TahweshaNative Bridge
+  if (window.TahweshaNative && window.TahweshaNative.testNotificationInSeconds) {
+    try {
+      window.TahweshaNative.testNotificationInSeconds(5);
+    } catch (e) {
+      console.warn("TahweshaNative.testNotificationInSeconds notice:", e);
+    }
+  }
+
+  // 2. Secondary assurance via LocalNotifications
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+    try {
+      window.Capacitor.Plugins.LocalNotifications.schedule({
+        notifications: [{
+          id: 9999,
+          title: "📿 ذكر واستغفار • تجربة حقيقية ناجحة",
+          body: "« أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ » • التنبيهات تعمل بامتياز وشاشتك مقفولة!",
+          channelId: 'tahwesha_heads_up_v5',
+          smallIcon: 'ic_stat_tahwesha',
+          iconColor: '#10B981',
+          schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true }
+        }]
+      });
+    } catch (e) {
+      console.warn("LocalNotifications test schedule error:", e);
+    }
+  }
+
+  playWebAudioChime();
+
+  setTimeout(() => {
+    if (fb) {
+      fb.innerHTML = `✅ تم إطلاق الإشعار بنجاح! إذا لم يظهر، يرجى الضغط على زر (تثبيت في الخلفية ⚙️) لإعطاء الإذن لهاتفك.`;
+    }
+  }, 6000);
+}
+
+function openPhoneBackgroundSettings() {
+  if (window.TahweshaNative && window.TahweshaNative.openAutoStartSettings) {
+    try {
+      window.TahweshaNative.openAutoStartSettings();
+      alert("⚙️ تم فتح إعدادات هاتفك!\n\nلضمان عمل التنبيهات وشاشتك مغلقة تماماً:\n1. فعّل خيار (التشغيل التلقائي / Auto-start).\n2. في خيار البطارية اختر (غير مقيد / No restrictions).\n\n(هذه الخطوة مهمة جداً لهواتف أوبو، ريلمي، شاومي، سامسونج).");
+      return;
+    } catch (e) {}
+  }
+  alert("يرجى فتح إعدادات الهاتف ⚙️ > التطبيقات > تحويشة استغفار > تفعيل (التشغيل التلقائي) واختيار البطارية (غير مقيد).");
+}
+
 // ---------------- MOBILE & DESKTOP FLOATING HEADS-UP NOTIFICATIONS ---------------- //
 // إشعارات عائمة على شاشة الموبايل حتى لو الشاشة مقفولة أو التطبيق في الخلفية مثل الواتساب
 async function initMobileNotifications() {
@@ -1715,8 +1799,8 @@ async function initMobileNotifications() {
       const { LocalNotifications } = window.Capacitor.Plugins;
       await LocalNotifications.requestPermissions();
       await LocalNotifications.createChannel({
-        id: 'tahwesha_heads_up_v4',
-        name: 'تنبيهات تحويشة استغفار العائمة',
+        id: 'tahwesha_heads_up_v5',
+        name: 'تنبيهات تحويشة استغفار العائمة v5',
         description: 'تنبيهات عائمة منبثقة على شاشة الموبايل حتى لو الموبايل مقفول مثل الواتساب',
         importance: 5, // IMPORTANCE_HIGH (5) -> Triggers Heads-Up Floating Alert over any screen!
         visibility: 1, // VISIBILITY_PUBLIC (1) -> Shows on Lock Screen!
@@ -1760,7 +1844,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
       id: 999,
       title: "📿 ذكر واستغفار • تحويشة استغفار",
       body: testThikr ? `« ${testThikr.text} »` : "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ",
-      channelId: 'tahwesha_heads_up_v4',
+      channelId: 'tahwesha_heads_up_v5',
       smallIcon: 'ic_stat_tahwesha',
       iconColor: '#10B981',
       schedule: { at: new Date(now + 45 * 1000), allowWhileIdle: true },
@@ -1778,7 +1862,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: "📿 ذكر واستغفار • تحويشة استغفار",
         body: `« ${thikrText} »${fadlText}`,
-        channelId: 'tahwesha_heads_up_v4',
+        channelId: 'tahwesha_heads_up_v5',
         smallIcon: 'ic_stat_tahwesha',
         iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
@@ -1802,7 +1886,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `📖 5 آيات من ${surahTitle}`,
         body: `${versesPreview}`,
-        channelId: 'tahwesha_heads_up_v4',
+        channelId: 'tahwesha_heads_up_v5',
         smallIcon: 'ic_stat_tahwesha',
         iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
@@ -1822,7 +1906,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
         id: notifIdCounter++,
         title: `🤲 دعاء للمتوفي (${targetName})`,
         body: duaaText,
-        channelId: 'tahwesha_heads_up_v4',
+        channelId: 'tahwesha_heads_up_v5',
         smallIcon: 'ic_stat_tahwesha',
         iconColor: '#10B981',
         schedule: { at: scheduledTime, allowWhileIdle: true },
@@ -1852,7 +1936,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
               id: notifIdCounter++,
               title: `🚗 تنبيه رخصة السيارة • ${vehTitle}`,
               body: alertMsg,
-              channelId: 'tahwesha_heads_up_v4',
+              channelId: 'tahwesha_heads_up_v5',
               smallIcon: 'ic_stat_tahwesha',
               iconColor: '#F59E0B',
               schedule: { at: schedAt, allowWhileIdle: true },
@@ -1875,7 +1959,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
           id: notifIdCounter++,
           title: `💳 موعد سداد قسط: ${inst.title}`,
           body: `تذكير بموعد سداد قسط ${inst.title} بقيمة ${instAmount.toLocaleString()} ج.م (يوم ${inst.dueDay || 'المحدد'} من الشهر).`,
-          channelId: 'tahwesha_heads_up_v4',
+          channelId: 'tahwesha_heads_up_v5',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#3B82F6',
           schedule: { at: schedAt, allowWhileIdle: true },
@@ -1893,7 +1977,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
           id: notifIdCounter++,
           title: `💰 تذكير سداد الجمعية: ${circ.name}`,
           body: `ميعاد سداد قسط جمعية ${circ.name} بقيمة ${circAmount.toLocaleString()} ج.م، قبضك بشهر: ${circ.payoutMonth || 'المحدد'}.`,
-          channelId: 'tahwesha_heads_up_v4',
+          channelId: 'tahwesha_heads_up_v5',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#10B981',
           schedule: { at: schedAt, allowWhileIdle: true },
@@ -1912,7 +1996,7 @@ async function scheduleBackgroundReminders(deceasedName = "جميع موتى ا�
           id: notifIdCounter++,
           title: `💵 تذكير تحصيل مستحقات`,
           body: `لديك مستحق لدى ${rec.debtorName} بقيمة ${recAmount.toLocaleString()} ج.م لم يتم تحصيله بعد.`,
-          channelId: 'tahwesha_heads_up_v4',
+          channelId: 'tahwesha_heads_up_v5',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#8B5CF6',
           schedule: { at: schedAt, allowWhileIdle: true },
@@ -1947,7 +2031,7 @@ async function triggerFloatingAlertEverywhere(alertPayload) {
           id: Math.floor(Math.random() * 1000000),
           title: title,
           body: body,
-          channelId: 'tahwesha_heads_up_v4',
+          channelId: 'tahwesha_heads_up_v5',
           smallIcon: 'ic_stat_tahwesha',
           iconColor: '#10B981',
           sound: 'notification.wav'
@@ -2816,7 +2900,7 @@ window.testAdminNotification = async function(type, delaySeconds = 0) {
             id: Math.floor(Math.random() * 8000) + 1000,
             title: title,
             body: body,
-            channelId: 'tahwesha_heads_up_v4',
+            channelId: 'tahwesha_heads_up_v5',
             smallIcon: 'ic_stat_tahwesha',
             iconColor: iconColor,
             sound: sound,

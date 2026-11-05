@@ -25,63 +25,81 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
     public static final String EXTRA_BODY = "extra_body";
     public static final String EXTRA_ID = "extra_id";
 
+    public static final String CHANNEL_HEADS_UP = "tahwesha_heads_up_v5";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (context == null) return;
 
-        // 1. Acquire WakeLock to wake CPU and turn on locked screen
+        // 1. Acquire WakeLock to wake CPU
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = null;
         if (pm != null) {
             try {
-                wakeLock = pm.newWakeLock(
-                    PowerManager.PARTIAL_WAKE_LOCK |
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP |
-                    PowerManager.ON_AFTER_RELEASE,
-                    "Tahwesha:AlarmReceiverWakeLock"
-                );
-                wakeLock.acquire(15000); // 15 seconds max
+                wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Tahwesha:AlarmReceiverWakeLock");
+                wakeLock.acquire(10000); // 10 seconds max
             } catch (Exception e) {
                 Log.w(TAG, "WakeLock acquire warning: " + e.getMessage());
             }
         }
 
         try {
-            String type = intent.getStringExtra(EXTRA_TYPE);
-            String title = intent.getStringExtra(EXTRA_TITLE);
-            String body = intent.getStringExtra(EXTRA_BODY);
-            int id = intent.getIntExtra(EXTRA_ID, (int) (System.currentTimeMillis() % 100000) + 1000);
+            String type = intent != null ? intent.getStringExtra(EXTRA_TYPE) : null;
+            String title = intent != null ? intent.getStringExtra(EXTRA_TITLE) : null;
+            String body = intent != null ? intent.getStringExtra(EXTRA_BODY) : null;
 
             if (title == null || title.isEmpty()) {
                 title = "📿 ذكر واستغفار • تحويشة استغفار";
             }
             if (body == null || body.isEmpty()) {
-                body = "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ";
+                body = TahweshaReminderManager.getNextAzkar();
             }
 
+            // Display the high-priority floating heads-up alert
+            showImmediateNotification(context, title, body);
+
+            // Automatically reschedule next reminder of this type to maintain an infinite loop!
+            if (type != null) {
+                TahweshaReminderManager.scheduleNextForType(context, type);
+            } else {
+                TahweshaReminderManager.scheduleNextForType(context, TahweshaReminderManager.TYPE_AZKAR);
+            }
+
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in AlarmReceiver onReceive", t);
+        } finally {
+            if (wakeLock != null && wakeLock.isHeld()) {
+                try {
+                    wakeLock.release();
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    public static void showImmediateNotification(Context context, String title, String body) {
+        if (context == null) return;
+        try {
             NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm == null) return;
 
-            String channelId = "tahwesha_heads_up_v4";
-            ensureChannelExists(context, nm, channelId);
+            ensureChannelExists(context, nm, CHANNEL_HEADS_UP);
 
-            // Intent to open MainActivity when user taps notification
             Intent launchIntent = new Intent(context, MainActivity.class);
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 flags |= PendingIntent.FLAG_IMMUTABLE;
             }
-            PendingIntent contentPendingIntent = PendingIntent.getActivity(context, id, launchIntent, flags);
+            PendingIntent contentPendingIntent = PendingIntent.getActivity(
+                context,
+                (int) (System.currentTimeMillis() % 10000),
+                launchIntent,
+                flags
+            );
 
-            Uri soundUri;
-            try {
-                soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.notification);
-            } catch (Exception e) {
-                soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            }
+            Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_HEADS_UP)
                 .setSmallIcon(R.drawable.ic_stat_tahwesha)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher))
                 .setContentTitle(title)
@@ -93,39 +111,29 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                 .setContentIntent(contentPendingIntent)
                 .setAutoCancel(true)
                 .setColor(Color.parseColor("#10B981"))
-                .setSound(soundUri)
-                .setVibrate(new long[]{0, 500, 200, 500})
-                .setDefaults(Notification.DEFAULT_ALL);
+                .setSound(defaultSoundUri)
+                .setVibrate(new long[]{0, 350, 150, 350});
 
-            nm.notify(id, builder.build());
+            int notifId = (int) (System.currentTimeMillis() % 100000) + 1000;
+            nm.notify(notifId, builder.build());
             Log.d(TAG, "Notification successfully displayed: " + title);
-
-            // Automatically reschedule next reminder of this type to maintain an infinite loop!
-            TahweshaReminderManager.scheduleNextForType(context, type);
-
         } catch (Throwable t) {
-            Log.e(TAG, "Error displaying notification in onReceive", t);
-        } finally {
-            if (wakeLock != null && wakeLock.isHeld()) {
-                try {
-                    wakeLock.release();
-                } catch (Exception ignored) {}
-            }
+            Log.e(TAG, "showImmediateNotification failed", t);
         }
     }
 
-    private void ensureChannelExists(Context context, NotificationManager nm, String channelId) {
+    private static void ensureChannelExists(Context context, NotificationManager nm, String channelId) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && nm != null) {
             NotificationChannel channel = nm.getNotificationChannel(channelId);
             if (channel == null) {
                 channel = new NotificationChannel(
                     channelId,
-                    "تنبيهات تحويشة استغفار العائمة",
+                    "تنبيهات تحويشة استغفار العائمة v5",
                     NotificationManager.IMPORTANCE_HIGH
                 );
                 channel.setDescription("تنبيهات عائمة منبثقة تظهر على الشاشة وفوق شاشة القفل مع الصوت والاهتزاز");
                 channel.enableVibration(true);
-                channel.setVibrationPattern(new long[]{0, 250, 150, 250});
+                channel.setVibrationPattern(new long[]{0, 350, 150, 350});
                 channel.enableLights(true);
                 channel.setLightColor(Color.YELLOW);
                 channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
@@ -136,8 +144,8 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
                     .build();
 
-                Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.notification);
-                channel.setSound(soundUri, audioAttributes);
+                Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                channel.setSound(defaultSound, audioAttributes);
 
                 nm.createNotificationChannel(channel);
             }

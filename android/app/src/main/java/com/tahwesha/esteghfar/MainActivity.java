@@ -10,9 +10,13 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 import android.net.Uri;
 import android.media.AudioAttributes;
+import android.media.RingtoneManager;
 import android.graphics.Color;
+import androidx.core.app.NotificationManagerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -37,21 +41,98 @@ public class MainActivity extends BridgeActivity {
 
         createFloatingNotificationChannel();
 
-        // 1. Explicitly request permissions (POST_NOTIFICATIONS on Android 13+ & Location for GPS prayer calculation)
+        // 1. Explicitly request permissions (POST_NOTIFICATIONS on Android 13+ & Location for GPS)
         requestAppPermissionsIfNeeded();
 
         // 2. Request ignoring battery optimizations so OEM engines (Xiaomi, Oppo, Samsung) don't kill alarms
         requestBatteryExemptionIfNeeded();
 
-        // 3. Native Alarm Engine: schedule background alarms that survive app closure!
+        // 3. Start Permanent Foreground Service (Guarantee background survival!)
+        startTahweshaBackgroundService();
+
+        // 4. Native Alarm Engine: schedule background alarms
         TahweshaReminderManager.ensureAlarmsScheduled(this);
+
+        // 5. Inject JavascriptInterface into WebView for In-App Native Diagnostics
+        setupNativeJavascriptBridge();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Ensure alarms are alive without spamming duplicate alarms
+        startTahweshaBackgroundService();
         TahweshaReminderManager.ensureAlarmsScheduled(this);
+    }
+
+    private void startTahweshaBackgroundService() {
+        try {
+            Intent serviceIntent = new Intent(this, TahweshaService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        } catch (Exception e) {
+            android.util.Log.w("MainActivity", "startForegroundService notice: " + e.getMessage());
+        }
+    }
+
+    private void setupNativeJavascriptBridge() {
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                WebView webView = getBridge().getWebView();
+                webView.addJavascriptInterface(new Object() {
+                    @JavascriptInterface
+                    public boolean areNotificationsEnabled() {
+                        return NotificationManagerCompat.from(MainActivity.this).areNotificationsEnabled();
+                    }
+
+                    @JavascriptInterface
+                    public void openNotificationSettings() {
+                        try {
+                            Intent intent = new Intent();
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                                intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                            } else {
+                                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.setData(Uri.parse("package:" + getPackageName()));
+                            }
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        } catch (Exception ignored) {}
+                    }
+
+                    @JavascriptInterface
+                    public void openAutoStartSettings() {
+                        AutoStartHelper.openAutoStart(MainActivity.this);
+                    }
+
+                    @JavascriptInterface
+                    public void testNotificationInSeconds(int seconds) {
+                        TahweshaReminderManager.scheduleSingleAlarm(
+                            MainActivity.this,
+                            TahweshaReminderManager.TYPE_AZKAR,
+                            seconds * 1000L,
+                            9999,
+                            "📿 ذكر واستغفار • تجربة حقيقية ناجحة",
+                            "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ • التنبيهات تعمل بامتياز وشاشتك مقفولة!"
+                        );
+                    }
+
+                    @JavascriptInterface
+                    public void showImmediateNotification() {
+                        TahweshaAlarmReceiver.showImmediateNotification(
+                            MainActivity.this,
+                            "📿 ذكر واستغفار • تحويشة استغفار",
+                            TahweshaReminderManager.getNextAzkar()
+                        );
+                    }
+                }, "TahweshaNative");
+            }
+        } catch (Exception e) {
+            android.util.Log.e("MainActivity", "setupNativeJavascriptBridge error", e);
+        }
     }
 
     private void requestAppPermissionsIfNeeded() {
@@ -87,15 +168,15 @@ public class MainActivity extends BridgeActivity {
 
     private void createFloatingNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = "tahwesha_heads_up_v4";
-            CharSequence name = "تنبيهات تحويشة استغفار العائمة";
+            String channelId = "tahwesha_heads_up_v5";
+            CharSequence name = "تنبيهات تحويشة استغفار العائمة v5";
             String description = "تنبيهات منبثقة عائمة تظهر على الشاشة وفوق شاشة القفل مباشرة مع الصوت والاهتزاز";
             int importance = NotificationManager.IMPORTANCE_HIGH;
 
             NotificationChannel channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
             channel.enableVibration(true);
-            channel.setVibrationPattern(new long[]{0, 250, 150, 250});
+            channel.setVibrationPattern(new long[]{0, 350, 150, 350});
             channel.enableLights(true);
             channel.setLightColor(Color.YELLOW);
             channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
@@ -106,8 +187,8 @@ public class MainActivity extends BridgeActivity {
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT)
                 .build();
 
-            Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.notification);
-            channel.setSound(soundUri, audioAttributes);
+            Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            channel.setSound(defaultSound, audioAttributes);
 
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             if (notificationManager != null) {

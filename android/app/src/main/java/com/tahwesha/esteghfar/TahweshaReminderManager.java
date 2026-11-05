@@ -18,25 +18,26 @@ public class TahweshaReminderManager {
     public static final String TYPE_FINANCIAL = "type_financial";
 
     private static final String[] AZKAR_ITEMS = {
-        "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ (استغفار يمحو الذنوب ويجلب الرزق)",
-        "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ (كلمتان خفيفتان على اللسان ثقيلتان في الميزان)",
-        "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ (كنز عظيم من كنوز الجنة)",
-        "اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ (من صلى علي صلاة صلى الله عليه بها عشراً)",
-        "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ (دعوة ذي النون ما دعا بها مكروب إلا فرج الله عنه)",
-        "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ، حَمْداً كَثِيراً طَيِّباً مُبَارَكاً فِيهِ",
+        "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ (غُفِرَتْ ذُنُوبُهُ وَإِنْ كَانَ فَرَّ مِنَ الزَّحْفِ)",
+        "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ (كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ ثَقِيلَتَانِ فِي الْمِيزَانِ)",
+        "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ (كَنْزٌ مِنْ كُنُوزِ الْجَنَّةِ)",
+        "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ (مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْراً)",
+        "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ (دَعْوَةُ ذِي النُّونِ لَمْ يَدْعُ بِهَا رَجُلٌ مُسْلِمٌ إِلَّا اسْتَجَابَ اللَّهُ لَهُ)",
+        "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ (مِائَةَ مَرَّةٍ فِي الْيَوْمِ تُفَتِّحُ أَبْوَابَ الرِّزْقِ)",
         "سُبْحَانَ اللَّهِ ، وَالْحَمْدُ لِلَّهِ ، وَلَا إِلَهَ إِلَّا اللَّهُ ، وَاللَّهُ أَكْبَرُ"
     };
 
     private static final String[] QURAN_ITEMS = {
-        "📖 سورة البقرة: « اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ »",
-        "📖 سورة الشرح: « فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا »",
-        "📖 سورة الطلاق: « وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا ۝ وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ »",
-        "📖 سورة النور: « اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ ۚ مَثَلُ نُورِهِ كَمِشْكَاةٍ فِيهَا مِصْبَاحٌ »",
-        "📖 سورة الإخلاص: « قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ »"
+        "﴿ فَقُلْتُ اسْتَغْفِرُوا رَبَّكُمْ إِنَّهُ كَانَ غَفَّارًا • يُرْسِلِ السَّمَاءَ عَلَيْكُمْ مِدْرَارًا • وَيُمْدِدْكُمْ بِأَمْوَالٍ وَبَنِينَ ﴾",
+        "﴿ وَمَا كَانَ اللَّهُ مُعَذِّبَهُمْ وَهُمْ يَسْتَغْفِرُونَ ﴾",
+        "﴿ وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجًا • وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ﴾",
+        "﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾",
+        "﴿ إِنَّ مَعَ الْعُسْرِ يُسْرًا ﴾",
+        "﴿ وَتَوَكَّلْ عَلَى الْحَيِّ الَّذِي لَا يَمُوتُ وَسَبِّحْ بِحَمْدِهِ ﴾"
     };
 
     private static final String[] DUAA_ITEMS = {
-        "اللَّهُمَّ اغْفِرْ لِمَوْتَانَا وَمَوْتَى الْمُسْلِمِينَ، وَارْحَمْهُمْ وَعَافِهِمْ وَاعْفُ عَنْهُمْ، وَأَكْرِمْ نُزُلَهُمْ وَوَسِّعْ مَدْخَلَهُمْ.",
+        "اللَّهُمَّ اغْفِرْ لِأَمْوَاتِنَا وَأَمْوَاتِ الْمُسْلِمِينَ، وَارْحَمْهُمْ رَحْمَةً وَاسِعَةً، وَنَوِّرْ قُبُورَهُمْ.",
         "اللَّهُمَّ اجْعَلْ قُبُورَهُمْ رَوْضَةً مِنْ رِيَاضِ الْجَنَّةِ، وَلَا تَجْعَلْهَا حُفْرَةً مِنْ حُفَرِ النَّارِ.",
         "اللَّهُمَّ بَرِّدْ عَلَى قُبُورِهِمْ وَأَنْزِلْ عَلَيْهِمْ نُوراً وَفَرَحاً وَسُرُوراً إِلَى يَوْمِ يُبْعَثُونَ."
     };
@@ -45,18 +46,29 @@ public class TahweshaReminderManager {
     private static int quranIndex = 0;
     private static int duaaIndex = 0;
 
+    public static String getNextAzkar() {
+        String item = AZKAR_ITEMS[Math.abs(azkarIndex % AZKAR_ITEMS.length)];
+        azkarIndex++;
+        return item;
+    }
+
+    public static String getNextQuran() {
+        String item = QURAN_ITEMS[Math.abs(quranIndex % QURAN_ITEMS.length)];
+        quranIndex++;
+        return item;
+    }
+
+    public static String getNextDuaa() {
+        String item = DUAA_ITEMS[Math.abs(duaaIndex % DUAA_ITEMS.length)];
+        duaaIndex++;
+        return item;
+    }
+
     public static void ensureAlarmsScheduled(Context context) {
         if (context == null) return;
         try {
-            android.content.SharedPreferences sp = context.getSharedPreferences("tahwesha_alarm_prefs", Context.MODE_PRIVATE);
-            long lastScheduled = sp.getLong("last_scheduled_timestamp", 0);
-            long now = System.currentTimeMillis();
-
-            // Reschedule only if never scheduled or more than 6 hours elapsed
-            if (now - lastScheduled > 6 * 60 * 60 * 1000L) {
-                scheduleAllAlarms(context);
-                sp.edit().putLong("last_scheduled_timestamp", now).apply();
-            }
+            // Always ensure alarms are scheduled without restrictive cooldowns
+            scheduleAllAlarms(context);
         } catch (Throwable t) {
             Log.e(TAG, "Error in ensureAlarmsScheduled", t);
         }
@@ -65,32 +77,32 @@ public class TahweshaReminderManager {
     public static void scheduleAllAlarms(Context context) {
         if (context == null) return;
         try {
-            // Schedule Azkar staggered at 20 minutes
-            scheduleSingleAlarm(context, TYPE_AZKAR, 20 * 60 * 1000L, 2001,
+            // 1. First Azkar alarm after 1 MINUTE so user immediately verifies delivery upon testing!
+            scheduleSingleAlarm(context, TYPE_AZKAR, 60 * 1000L, 2001,
                 "📿 ذكر واستغفار • تحويشة استغفار",
-                AZKAR_ITEMS[0]);
+                getNextAzkar());
 
-            // Schedule Quran staggered at 50 minutes
-            scheduleSingleAlarm(context, TYPE_QURAN, 50 * 60 * 1000L, 2002,
+            // 2. Schedule Quran staggered at 25 minutes
+            scheduleSingleAlarm(context, TYPE_QURAN, 25 * 60 * 1000L, 2002,
                 "📖 آيات بينات من الذكر الحكيم",
-                QURAN_ITEMS[0]);
+                getNextQuran());
 
-            // Schedule Duaa staggered at 80 minutes
-            scheduleSingleAlarm(context, TYPE_DUAA, 80 * 60 * 1000L, 2003,
+            // 3. Schedule Duaa staggered at 50 minutes
+            scheduleSingleAlarm(context, TYPE_DUAA, 50 * 60 * 1000L, 2003,
                 "🤲 دعاء للمتوفي • تحويشة استغفار",
-                DUAA_ITEMS[0]);
+                getNextDuaa());
 
-            // Schedule Vehicle reminder at 3 hours
-            scheduleSingleAlarm(context, TYPE_VEHICLE, 3 * 60 * 60 * 1000L, 2004,
+            // 4. Schedule Vehicle reminder at 2 hours
+            scheduleSingleAlarm(context, TYPE_VEHICLE, 2 * 60 * 60 * 1000L, 2004,
                 "🚗 متابعة رخص المركبات والسيارات",
-                "تذكير: راجع تواريخ انتهاء رخص مركباتك المسجلة للتجديد في موعدها.");
+                "تذكير: راجع تواريخ انتهاء رخص مركباتك المسجلة للتجديد في موعدها لتفادي الغرامات.");
 
-            // Schedule Financial reminder at 5 hours
-            scheduleSingleAlarm(context, TYPE_FINANCIAL, 5 * 60 * 60 * 1000L, 2005,
+            // 5. Schedule Financial reminder at 4 hours
+            scheduleSingleAlarm(context, TYPE_FINANCIAL, 4 * 60 * 60 * 1000L, 2005,
                 "💳 متابعة الأقساط والجمعيات المالية",
-                "تذكير: راجع مواعيد سداد الأقساط والجمعيات الشهرية المسجلة.");
+                "تذكير: راجع مواعيد سداد الأقساط والجمعيات الشهرية المسجلة في خطتك المالية.");
 
-            Log.d(TAG, "All background alarms successfully scheduled with smooth spacing!");
+            Log.d(TAG, "All background alarms successfully scheduled!");
         } catch (Throwable t) {
             Log.e(TAG, "Error in scheduleAllAlarms", t);
         }
@@ -104,23 +116,20 @@ public class TahweshaReminderManager {
         String body;
 
         if (TYPE_AZKAR.equals(type)) {
-            delayMillis = 30 * 60 * 1000L; // 30 minutes
+            delayMillis = 25 * 60 * 1000L; // 25 minutes
             id = 2001;
             title = "📿 ذكر واستغفار • تحويشة استغفار";
-            body = AZKAR_ITEMS[Math.abs(azkarIndex % AZKAR_ITEMS.length)];
-            azkarIndex++;
+            body = getNextAzkar();
         } else if (TYPE_QURAN.equals(type)) {
-            delayMillis = 60 * 60 * 1000L; // 60 minutes
+            delayMillis = 50 * 60 * 1000L; // 50 minutes
             id = 2002;
             title = "📖 آيات بينات من الذكر الحكيم";
-            body = QURAN_ITEMS[Math.abs(quranIndex % QURAN_ITEMS.length)];
-            quranIndex++;
+            body = getNextQuran();
         } else if (TYPE_DUAA.equals(type)) {
-            delayMillis = 90 * 60 * 1000L; // 90 minutes
+            delayMillis = 75 * 60 * 1000L; // 75 minutes
             id = 2003;
             title = "🤲 دعاء للمتوفي • تحويشة استغفار";
-            body = DUAA_ITEMS[Math.abs(duaaIndex % DUAA_ITEMS.length)];
-            duaaIndex++;
+            body = getNextDuaa();
         } else if (TYPE_VEHICLE.equals(type)) {
             delayMillis = 3 * 60 * 60 * 1000L; // 3 hours
             id = 2004;
@@ -159,7 +168,6 @@ public class TahweshaReminderManager {
         long triggerAt = System.currentTimeMillis() + delayMillis;
 
         try {
-            // Android 12+ (API 31+) & Android 14 (API 34): Check if exact alarms can be scheduled
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (am.canScheduleExactAlarms()) {
                     am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
