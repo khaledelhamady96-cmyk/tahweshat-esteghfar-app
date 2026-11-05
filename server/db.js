@@ -165,10 +165,10 @@ class DBManager {
       id: "usr_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
       name: name.trim(),
       phone: phone.trim(),
-      email: email.trim().toLowerCase(),
+      email: (email && typeof email === 'string') ? email.trim().toLowerCase() : "",
       password: password,
       role: "user",
-      isVerified: false,
+      isVerified: true,
       verificationCode: verificationCode,
       deceasedName: (deceasedName && deceasedName.trim()) || "جميع موتى المسلمين",
       createdAt: new Date().toISOString()

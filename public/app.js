@@ -4,7 +4,7 @@
  */
 
 // Global State
-const BUILD_APP_VERSION = "2.6.0";
+const BUILD_APP_VERSION = "2.6.1";
 let CURRENT_APP_VERSION = (() => {
   try {
     const cached = localStorage.getItem("tahwesha_app_version");
@@ -157,7 +157,7 @@ async function handleOfflineApiCall(endpoint, method, body) {
     }
 
     if (!user) throw new Error("رقم الموبايل أو كلمة المرور غير صحيحة");
-    if (!user.isVerified) throw new Error("الحساب غير مفعل بعد، يرجى تفعيل حسابك أولاً");
+    if (!user.isVerified) user.isVerified = true;
 
     if (typeof FirebaseSync !== 'undefined') {
       FirebaseSync.syncUserToCloud(user);
@@ -166,7 +166,7 @@ async function handleOfflineApiCall(endpoint, method, body) {
     return { success: true, token: "local_token_" + user.id, user };
   }
 
-  // 3. Auth Register
+  // 3. Auth Register (Direct without OTP)
   if (endpoint === '/api/auth/register' && method === 'POST') {
     const users = OfflineEngine.getStorage('users', []);
     if (users.find(u => u.phone === body.phone.trim())) throw new Error("رقم الموبايل مسجل بالفعل");
@@ -175,11 +175,11 @@ async function handleOfflineApiCall(endpoint, method, body) {
       id: "usr_" + Date.now(),
       name: body.name.trim(),
       phone: body.phone.trim(),
-      email: body.email.trim(),
+      email: (body.email && typeof body.email === 'string') ? body.email.trim() : "",
       password: body.password,
       deceasedName: body.deceasedName || "جميع موتى المسلمين",
       role: "user",
-      isVerified: false,
+      isVerified: true,
       verificationCode: code,
       createdAt: new Date().toISOString()
     };
@@ -191,7 +191,7 @@ async function handleOfflineApiCall(endpoint, method, body) {
       FirebaseSync.syncUserToCloud(newUser);
     }
 
-    return { success: true, message: "تم تسجيل الحساب بنجاح، يُرجى فحص بريدك الإلكتروني للحصول على رمز التفعيل." };
+    return { success: true, token: "local_token_" + newUser.id, user: newUser, message: "تم تسجيل الحساب بنجاح والدخول مباشرة!" };
   }
 
   // 4. Auth Verify
@@ -1572,11 +1572,7 @@ async function handleLoginSubmit(e) {
     setCurrentUser(res.user);
     await refreshAllData();
   } catch (err) {
-    if (err.message && err.message.includes('غير مفعل')) {
-      openOtpModal(phone, "");
-    } else {
-      alert(err.message || "فشل تسجيل الدخول، تأكد من صحة رقم الموبايل وكلمة المرور");
-    }
+    alert(err.message || "فشل تسجيل الدخول، تأكد من صحة رقم الموبايل وكلمة المرور");
   }
 }
 
@@ -1587,19 +1583,33 @@ async function handleRegisterSubmit(e) {
   const name = document.getElementById('regName').value.trim();
   const rawPhone = document.getElementById('regPhone').value.trim();
   const phone = normalizePhone(rawPhone);
-  const email = document.getElementById('regEmail').value.trim();
+  const email = document.getElementById('regEmail') ? document.getElementById('regEmail').value.trim() : "";
   const deceasedName = document.getElementById('regDeceasedName').value.trim();
   const rawPassword = document.getElementById('regPassword').value;
   const password = normalizeArabicDigits(rawPassword);
 
-  if (!phone || !password || !name || !email) {
-    alert("يرجى ملء جميع الحقول المطلوبة بشكل صحيح");
+  if (!phone || !password || !name) {
+    alert("يرجى ملء الحقول المطلوبة (الاسم بالكامل، رقم الموبايل، كلمة المرور)");
     return;
   }
 
   try {
-    const res = await apiCall('/api/auth/register', 'POST', { name, phone, email, password, deceasedName });
-    openOtpModal(phone, email);
+    const res = await apiCall('/api/auth/register', 'POST', { name, phone, email: email || "", password, deceasedName });
+    if (res.token && res.user) {
+      localStorage.setItem('tahwesha_token', res.token);
+      setCurrentUser(res.user);
+      await refreshAllData();
+      showToast('تم إنشاء الحساب بنجاح! مرحباً بك في تحويشة استغفار 📿✨', 'success');
+      return;
+    }
+    // Fallback auto login
+    const loginRes = await apiCall('/api/auth/login', 'POST', { phone, password });
+    if (loginRes.token && loginRes.user) {
+      localStorage.setItem('tahwesha_token', loginRes.token);
+      setCurrentUser(loginRes.user);
+      await refreshAllData();
+      showToast('تم تسجيل حسابك وتفعيله مباشرة! مرحباً بك 📿✨', 'success');
+    }
   } catch (err) {
     alert(err.message || "حدث خطأ أثناء التسجيل");
   }

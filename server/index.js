@@ -57,25 +57,29 @@ app.get('/api/auth/stats', (req, res) => {
   });
 });
 
-// User Registration with Real Email OTP
+// User Registration without OTP (Direct Registration & Auto-Login)
 app.post('/api/auth/register', async (req, res) => {
   const { name, phone, email, password, deceasedName } = req.body;
-  if (!name || !phone || !email || !password) {
-    return res.status(400).json({ error: "يرجى ملء جميع الحقول المطلوبة (الاسم، الموبايل، الإيميل، كلمة المرور)" });
+  if (!name || !phone || !password) {
+    return res.status(400).json({ error: "يرجى ملء الحقول المطلوبة (الاسم، رقم الموبايل، كلمة المرور)" });
   }
 
   try {
-    const user = db.createUser({ name, phone, email, password, deceasedName });
-    
-    // Send real verification email via SMTP
-    const emailResult = await sendVerificationEmail(email, name, user.verificationCode);
+    const user = db.createUser({ name, phone, email: email || "", password, deceasedName });
+    const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     
     res.json({
       success: true,
-      message: `تم إرسال كود التحقق السري المكون من 6 أرقام إلى بريدك الإلكتروني (${email}) بنجاح. يرجى مراجعة صندوق الوارد (أو مجلد Spam).`,
-      phone: user.phone,
-      email: user.email,
-      emailSent: emailResult.sent
+      message: "تم إنشاء الحساب بنجاح والدخول مباشرة! مرحباً بك في تحويشة استغفار.",
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        deceasedName: user.deceasedName
+      }
     });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -186,11 +190,8 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   if (!user.isVerified) {
-    return res.status(403).json({
-      error: "الحساب غير مفعل بعد، يرجى إدخال رمز التحقق السري المرسل لإيميلك",
-      needsVerification: true,
-      phone: user.phone
-    });
+    user.isVerified = true;
+    db.save();
   }
 
   const token = jwt.sign({ id: user.id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
