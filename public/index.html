@@ -569,6 +569,23 @@
           </button>
         </div>
 
+        <!-- Background Lock & AutoStart Guide Trigger Banner -->
+        <div class="bg-gradient-to-r from-amber-950/60 via-slate-900 to-amber-950/40 border border-amber-500/40 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-lg">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-lg shrink-0">
+              🔒
+            </span>
+            <div>
+              <h4 class="text-xs sm:text-sm font-black text-white">هل تتوقف التنبيهات والأذان عند مسح التطبيق من الخلفية؟</h4>
+              <p class="text-[10px] text-amber-200/80 mt-0.5">خطوات بسيطة لتثبيت التطبيق بقفل 🔒 في شاشة المهام لمنع إيقافه نهائياً</p>
+            </div>
+          </div>
+          <button type="button" onclick="openBackgroundLockGuideModal()" class="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-black flex items-center gap-1.5 active:scale-95 transition-all shrink-0">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>تثبيت التنبيهات 24 ساعة</span>
+          </button>
+        </div>
+
         <!-- 3 Pillars Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           
@@ -2403,6 +2420,112 @@
 
       </div>
 
+    </div>
+
+    <!-- ================= BACKGROUND PROTECTION & APP LOCK GUIDE MODAL (دليل قفل التطبيق وضمان التنبيهات في الخلفية) ================= -->
+    <div id="backgroundLockGuideModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl overflow-y-auto">
+      <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl w-full max-w-md p-5 shadow-2xl text-right space-y-4 my-auto relative animate-in fade-in zoom-in-95 duration-300">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-700 flex items-center justify-center text-white text-lg shadow-lg shadow-amber-500/30">
+              🔒
+            </span>
+            <div>
+              <h3 class="text-sm font-black text-white">ضمان استمرار التنبيهات في الخلفية</h3>
+              <p class="text-[10px] text-amber-300">حل إغلاق التطبيق نهائياً عند مسحه من التطبيقات المفتوحة</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeBackgroundLockGuideModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
+        </div>
+
+        <div class="bg-amber-950/40 border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-200 leading-relaxed">
+          <strong>لماذا تتوقف التنبيهات على هواتف (شاومي، أوبو، ريلمي، سامسونج)؟</strong><br>
+          عندما تقوم بمسح التطبيق من شاشة المهام، يعتبره نظام الهاتف أمراً بالإيقاف الإجباري لتوفير الطاقة. لحل ذلك نهائياً اتبع الخطوات التالية:
+        </div>
+
+        <!-- Essential Steps -->
+        <div class="space-y-3">
+          
+          <!-- Step 1: Lock in Recents (Most Important!) -->
+          <div class="p-3.5 rounded-2xl bg-slate-950 border border-amber-500/40 space-y-2 shadow-inner">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black border border-amber-500/30">الخطوة الأهم 🌟</span>
+              <span class="text-xs font-black text-white flex items-center gap-1.5">
+                <span>1. وضع القفل 🔒 على التطبيق</span>
+                <i class="fa-solid fa-lock text-amber-400"></i>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              1. افتح <strong>شاشة التطبيقات المفتوحة (المهام الأخيرة)</strong> بالضغط على زر المربع أو السحب لأعلى.<br>
+              2. <strong>اضغط مطولاً</strong> على نافذة تطبيق تحويشة استغفار (أو اسحبها لأسفل في بعض الهواتف).<br>
+              3. اضغط على رمز <strong>القفل 🔒</strong>.<br>
+              <span class="text-amber-300 font-bold block mt-1">✨ النتيجة: سيبقى التطبيق محصناً ولن يتمكن هاتفك من إغلاقه حتى عند الضغط على زر مسح الكل (X)!</span>
+            </p>
+          </div>
+
+          <!-- Step 2: Auto-Start Permission -->
+          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-black border border-blue-500/30">خطوة 2</span>
+              <span class="text-xs font-black text-white flex items-center gap-1.5">
+                <span>2. تفعيل التشغيل التلقائي (AutoStart)</span>
+                <i class="fa-solid fa-sliders text-blue-400"></i>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              يسمح للتطبيق بإيقاظ الهاتف وإطلاق صوت الأذان والأذكار في مواعيدها المحددة بدقة.
+            </p>
+            <button type="button" onclick="handleMandatoryAutoStart()" class="w-full py-2 px-3 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md">
+              <i class="fa-solid fa-gear"></i>
+              <span>فتح إعدادات التشغيل التلقائي للهاتف ↗</span>
+            </button>
+          </div>
+
+          <!-- Step 3: Battery Optimization Exemption -->
+          <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/30">خطوة 3</span>
+              <span class="text-xs font-black text-white flex items-center gap-1.5">
+                <span>3. إلغاء توفير البطارية (وضع بلا قيود)</span>
+                <i class="fa-solid fa-battery-full text-emerald-400"></i>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              اختر "لا توجد قيود (No Restrictions)" لمنع نظام أندرويد من تجميد التطبيق أثناء النوم.
+            </p>
+            <button type="button" onclick="handleMandatoryBatteryExemption()" class="w-full py-2 px-3 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>ضبط موفر البطارية على (بلا قيود) ↗</span>
+            </button>
+          </div>
+
+          <!-- Step 4: Live Instant Verification Test -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/70 to-slate-950 border border-emerald-500/40 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black">تجربة وتأكد ⏱️</span>
+              <span class="text-xs font-black text-white">4. اختبر بنفسك الآن</span>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-relaxed">
+              اضغط على الزر بالأسفل، ثم <strong>اقفل التطبيق وامسحه من الخلفية فوراً</strong>، وانتظر 10 ثوانٍ لتتأكد من ظهور التنبيه بصوت واهتزاز والتطبيق مقفول!
+            </p>
+            <button type="button" onclick="testNotificationAfterAppClosed(10)" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-emerald-950/60">
+              <i class="fa-solid fa-play text-yellow-300"></i>
+              <span>اختبار التنبيه بعد 10 ثوانٍ (امسح التطبيق فور الضغط)</span>
+            </button>
+            <div id="testClosedAppFeedback" class="hidden text-xs text-amber-300 font-bold text-center bg-amber-950/70 p-2 rounded-xl border border-amber-500/30"></div>
+          </div>
+
+        </div>
+
+        <div class="pt-1">
+          <button type="button" onclick="closeBackgroundLockGuideModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">
+            حسناً، فهمت الطريقة
+          </button>
+        </div>
+
+      </div>
     </div>
 </body>
 </html>

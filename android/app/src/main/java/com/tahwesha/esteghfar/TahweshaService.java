@@ -27,25 +27,65 @@ public class TahweshaService extends Service {
     public void onCreate() {
         super.onCreate();
         createStickyChannel();
-        
-        Notification notification = buildStickyNotification();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                startForeground(NOTIF_STICKY_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-            } else {
-                startForeground(NOTIF_STICKY_ID, notification);
-            }
-        } else {
-            startForeground(NOTIF_STICKY_ID, notification);
-        }
-
+        promoteToForeground();
         startPeriodicReminders();
         Log.d(TAG, "TahweshaService started and foreground protection active!");
     }
 
+    private void promoteToForeground() {
+        try {
+            Notification notification = buildStickyNotification();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    startForeground(NOTIF_STICKY_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+                } else {
+                    startForeground(NOTIF_STICKY_ID, notification);
+                }
+            } else {
+                startForeground(NOTIF_STICKY_ID, notification);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "promoteToForeground notice: " + e.getMessage());
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        promoteToForeground();
         return START_STICKY; // Ensures Android automatically restarts the service if killed
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        Log.w(TAG, "App task swiped from recents! Rescheduling alarms and reviving service...");
+
+        // 1. Immediately reinforce all alarms (Azkar, Quran, Duaa, Prayer) in AlarmManager
+        TahweshaReminderManager.ensureAlarmsScheduled(getApplicationContext());
+
+        // 2. Schedule resurrection via AlarmManager in 1 second
+        try {
+            Intent restartServiceIntent = new Intent(getApplicationContext(), TahweshaService.class);
+            restartServiceIntent.setPackage(getPackageName());
+            PendingIntent restartPendingIntent = PendingIntent.getService(
+                getApplicationContext(),
+                9911,
+                restartServiceIntent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0
+            );
+
+            android.app.AlarmManager am = (android.app.AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+            if (am != null) {
+                long triggerAt = System.currentTimeMillis() + 1000;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    am.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, restartPendingIntent);
+                } else {
+                    am.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerAt, restartPendingIntent);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "onTaskRemoved resurrection error", e);
+        }
     }
 
     @Override

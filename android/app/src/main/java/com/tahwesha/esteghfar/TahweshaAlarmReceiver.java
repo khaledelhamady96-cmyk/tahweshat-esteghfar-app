@@ -143,6 +143,16 @@ public class TahweshaAlarmReceiver extends BroadcastReceiver {
             // Display the high-priority floating heads-up alert
             showImmediateNotification(context, title, body);
 
+            // Ensure TahweshaService is actively running in background
+            try {
+                Intent serviceIntent = new Intent(context, TahweshaService.class);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent);
+                } else {
+                    context.startService(serviceIntent);
+                }
+            } catch (Exception ignored) {}
+
             // Automatically reschedule next reminder of this type to maintain an infinite loop!
             if (type != null) {
                 TahweshaReminderManager.scheduleNextForType(context, type);

@@ -65,11 +65,12 @@
             </intent-filter>
         </receiver>
 
-        <!-- Permanent Foreground Protection Service -->
+        <!-- Permanent Foreground Protection Service (survives task swipe) -->
         <service
             android:name=".TahweshaService"
             android:enabled="true"
             android:exported="false"
+            android:stopWithTask="false"
             android:foregroundServiceType="dataSync" />
     </application>
 

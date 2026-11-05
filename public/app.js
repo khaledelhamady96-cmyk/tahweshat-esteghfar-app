@@ -4620,3 +4620,37 @@ function initRealtimeCloudListeners() {
     }
   }
 }
+
+// ==============================================================================
+// 4. BACKGROUND APP LOCK & SURVIVAL GUIDE HELPERS
+// ==============================================================================
+
+function openBackgroundLockGuideModal() {
+  const modal = document.getElementById('backgroundLockGuideModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeBackgroundLockGuideModal() {
+  const modal = document.getElementById('backgroundLockGuideModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function testNotificationAfterAppClosed(seconds = 10) {
+  const fb = document.getElementById('testClosedAppFeedback');
+  if (fb) {
+    fb.classList.remove('hidden');
+    fb.innerHTML = `🚀 تم جدولة التنبيه بعد ${seconds} ثوانٍ بالضبط!<br><strong>اقفل البرنامج الآن فوراً وامسحه من شاشة التطبيقات المفتوحة</strong> لتتأكد بنفسك من ظهوره وصوته!`;
+  }
+
+  if (window.TahweshaNative && window.TahweshaNative.testNotificationInSeconds) {
+    window.TahweshaNative.testNotificationInSeconds(seconds);
+  } else {
+    setTimeout(() => {
+      triggerFloatingAlertEverywhere({
+        type: "azkar",
+        title: "📿 ذكر واستغفار • تجربة حقيقية ناجحة",
+        content: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ • التنبيهات تعمل بامتياز وشاشتك مقفولة!"
+      });
+    }, seconds * 1000);
+  }
+}
