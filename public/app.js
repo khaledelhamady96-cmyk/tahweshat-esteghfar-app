@@ -656,6 +656,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (appShell) appShell.classList.add('hidden');
   }
 
+  // 1.5. Clean state and celebrate if updated to a new build
+  try {
+    const LAST_BUILD_KEY = 'tahwesha_installed_build_version';
+    const lastRunBuild = localStorage.getItem(LAST_BUILD_KEY);
+    if (lastRunBuild !== BUILD_APP_VERSION) {
+      console.log(`[App] Fresh build launch: ${lastRunBuild} -> ${BUILD_APP_VERSION}`);
+      localStorage.setItem(LAST_BUILD_KEY, BUILD_APP_VERSION);
+      localStorage.setItem('tahwesha_app_version', BUILD_APP_VERSION);
+      
+      setTimeout(() => {
+        if (typeof updateQuranBookmarkDisplay === 'function') {
+          updateQuranBookmarkDisplay();
+        }
+        triggerFloatingAlertEverywhere({
+          type: "update_success",
+          title: "🎉 تم تحديث التطبيق بنجاح (v" + BUILD_APP_VERSION + ")",
+          content: "تم تفعيل المصحف الشريف كاملاً (114 سورة) مع فاصل الحفظ، ومحرك أصوات الآذان الـ 5، والتسجيل المباشر بنجاح!",
+          subNote: "جميع مميزات التحديث الجديد مثبتة ونشطة بالكامل الآن"
+        });
+      }, 1500);
+    }
+  } catch (e) {
+    console.debug("Build migration notice:", e.message);
+  }
+
   // 2. Automatic check for app updates after 3 seconds
   setTimeout(() => {
     checkForAppUpdates(true);
@@ -4142,6 +4167,7 @@ function updateQuranBookmarkDisplay() {
   setElText('dashboardBookmarkAyahNum', bm.ayahId);
   setElText('dashboardBookmarkAyahSnippet', bm.ayahText ? `« ${bm.ayahText} »` : `الآية رقم ${bm.ayahId}`);
   setElText('quranActiveBookmarkText', `سورة ${bm.surahName} • الآية ${bm.ayahId}`);
+  setElText('homeBookmarkSummary', `موضع التوقف: سورة ${bm.surahName} - آية ${bm.ayahId}`);
 }
 
 function renderSurahsDirectory(filterText = '') {

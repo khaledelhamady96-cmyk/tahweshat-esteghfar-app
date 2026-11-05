@@ -54,7 +54,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.6.2">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white select-none">
 
@@ -204,8 +204,8 @@
             <span>الرئيسية</span>
           </button>
           <button onclick="switchTab('religious')" id="tab-religious" class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
-            <i class="fa-solid fa-kaaba text-gold-400"></i>
-            <span>الأذكار</span>
+            <i class="fa-solid fa-book-quran text-gold-400"></i>
+            <span>المصحف والآذان والذكر</span>
           </button>
           <button onclick="switchTab('financial')" id="tab-financial" class="nav-tab flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold">
             <i class="fa-solid fa-coins text-emerald-400"></i>
@@ -377,6 +377,49 @@
                 <span>مشاركة</span>
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Islamic Hub & Quran Spotlight: Full Holy Quran (114 Surahs) & Multi-Voice Adhan -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Card 1: Holy Quran Reader -->
+          <div class="bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-900/40 border border-amber-500/50 rounded-3xl p-4 shadow-xl flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-2xl text-amber-300 shadow-md shrink-0">
+                📖
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-black text-white">المصحف الشريف كاملاً</h4>
+                  <span class="text-[9px] font-bold text-amber-300 bg-amber-900/60 px-2 py-0.5 rounded-full border border-amber-500/40">114 سورة</span>
+                </div>
+                <p class="text-[11px] text-amber-200/80 mt-0.5" id="homeBookmarkSummary">مع فاصل القراءة وحفظ موضع التوقف</p>
+              </div>
+            </div>
+            <button type="button" onclick="openQuranReader(1)" class="px-3.5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-lg shadow-amber-950/60 active:scale-95 transition-all shrink-0">
+              <i class="fa-solid fa-book-open"></i>
+              <span>اقرأ الآن</span>
+            </button>
+          </div>
+
+          <!-- Card 2: Adhan Voices & Prayer Times -->
+          <div class="bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-900/40 border border-emerald-500/50 rounded-3xl p-4 shadow-xl flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-2xl text-emerald-300 shadow-md shrink-0">
+                🕌
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-black text-white">الآذان ومواقيت الصلاة</h4>
+                  <span class="text-[9px] font-bold text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-500/40">5 مؤذنين</span>
+                </div>
+                <p class="text-[11px] text-emerald-200/80 mt-0.5">منبه الصلاة الصوتي مع الشاشة المقفلة</p>
+              </div>
+            </div>
+            <button type="button" onclick="openAthanVoiceModal()" class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-lg shadow-emerald-950/60 active:scale-95 transition-all shrink-0">
+              <i class="fa-solid fa-volume-high"></i>
+              <span>أصوات الآذان</span>
+            </button>
           </div>
         </div>
 
@@ -1339,8 +1382,8 @@
         <span>الرئيسية</span>
       </button>
       <button onclick="switchTab('religious')" id="mob-tab-religious" class="mob-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 transition-colors">
-        <i class="fa-solid fa-kaaba text-base"></i>
-        <span>الأذكار</span>
+        <i class="fa-solid fa-book-quran text-base text-amber-400"></i>
+        <span>المصحف والذكر</span>
       </button>
       <button onclick="switchTab('financial')" id="mob-tab-financial" class="mob-nav-btn flex flex-col items-center gap-1 text-[10px] font-bold text-slate-400 transition-colors">
         <i class="fa-solid fa-coins text-base"></i>
@@ -1954,12 +1997,12 @@
   </div>
 
   <!-- Google Firebase Official Client SDKs (Embedded Local & Seamless Cloud Sync) -->
-  <script src="libs/firebase-app.js"></script>
-  <script src="libs/firebase-firestore.js"></script>
-  <script src="firebaseService.js"></script>
-  <script src="embeddedData.js"></script>
-  <script src="libs/quranData.js"></script>
-  <script src="app.js"></script>
+  <script src="libs/firebase-app.js?v=2.6.2"></script>
+  <script src="libs/firebase-firestore.js?v=2.6.2"></script>
+  <script src="firebaseService.js?v=2.6.2"></script>
+  <script src="embeddedData.js?v=2.6.2"></script>
+  <script src="libs/quranData.js?v=2.6.2"></script>
+  <script src="app.js?v=2.6.2"></script>
 
     <!-- ================= FULLSCREEN BIOMETRIC & PIN SECURITY LOCK OVERLAY ================= -->
     <div id="securityLockOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">

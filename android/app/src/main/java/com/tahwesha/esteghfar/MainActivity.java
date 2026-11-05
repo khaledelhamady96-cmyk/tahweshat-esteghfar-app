@@ -60,6 +60,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().clearCache(true);
+        }
         startTahweshaBackgroundService();
         TahweshaReminderManager.ensureAlarmsScheduled(this);
     }
@@ -81,6 +84,10 @@ public class MainActivity extends BridgeActivity {
         try {
             if (getBridge() != null && getBridge().getWebView() != null) {
                 WebView webView = getBridge().getWebView();
+                // Ensure fresh assets loading on every launch & clear stale WebView cache
+                webView.clearCache(true);
+                webView.getSettings().setCacheMode(android.webkit.WebSettings.LOAD_NO_CACHE);
+
                 webView.addJavascriptInterface(new Object() {
                     @JavascriptInterface
                     public boolean areNotificationsEnabled() {
